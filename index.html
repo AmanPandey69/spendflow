@@ -140,19 +140,22 @@
   <!-- Main Content Container -->
   <main class="max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-6 flex-1 w-full space-y-5 sm:space-y-6">
 
-    <!-- Overview Metric Cards (5 Cards) -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+    <!-- Overview Metric Cards (6 Cards) -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3.5">
       
-      <!-- 1. Current Bank Balance Left -->
-      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
+      <!-- 1. Current Bank Balance Left & Safe-to-Spend after SIPs -->
+      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Total Bank Balance</span>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Bank Balance</span>
           <span class="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </span>
         </div>
-        <div class="mt-2 sm:mt-2.5">
-          <div id="stat-current-balance" class="text-lg sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">₹0</div>
+        <div class="mt-2">
+          <div id="stat-current-balance" class="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">₹0</div>
+          <div id="stat-free-after-sip" class="text-[10px] font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200/70 dark:border-teal-800/70 px-1.5 py-0.5 rounded mt-1 inline-block">
+            Free after SIPs: ₹0
+          </div>
           <div id="stat-bank-breakdown" class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap gap-1">
             <!-- Dynamic pills for Kotak, ICICI, Bank of Baroda -->
           </div>
@@ -160,30 +163,46 @@
         <div class="absolute bottom-0 left-0 right-0 h-1 bg-emerald-500"></div>
       </div>
 
-      <!-- 2. Your Real Spends (Net after splits) -->
-      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
+      <!-- 2. Mutual Funds & Monthly SIP Outflow -->
+      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Your Real Spends</span>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">Mutual Funds</span>
+          <span class="w-6 h-6 rounded-lg bg-violet-50 dark:bg-violet-950/80 flex items-center justify-center text-violet-600 dark:text-violet-400 text-xs font-bold">
+            📈
+          </span>
+        </div>
+        <div class="mt-2">
+          <div id="stat-mf-pending" class="text-lg sm:text-xl font-bold text-violet-600 dark:text-violet-400 tracking-tight">₹0</div>
+          <p id="stat-mf-Pending-label" class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Pending SIPs this month</p>
+          <p id="stat-mf-invested-note" class="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 mt-0.5 truncate">Invested: ₹0</p>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 h-1 bg-violet-500"></div>
+      </div>
+
+      <!-- 3. Your Real Spends (Net after splits) -->
+      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Real Spends</span>
           <span class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
           </span>
         </div>
-        <div class="mt-2 sm:mt-2.5">
-          <div id="stat-total-spent" class="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">₹0</div>
-          <p id="stat-gross-outflow-note" class="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">Total paid upfront: ₹0</p>
+        <div class="mt-2">
+          <div id="stat-total-spent" class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">₹0</div>
+          <p id="stat-gross-outflow-note" class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">Total outflow: ₹0</p>
         </div>
       </div>
 
-      <!-- 3. Credit Cards Outstanding (ICICI + Kotak) -->
-      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
+      <!-- 4. Credit Cards Outstanding (ICICI + Kotak) -->
+      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">CC Outstanding</span>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">CC Due</span>
           <span class="w-6 h-6 rounded-lg bg-rose-50 dark:bg-rose-950/80 flex items-center justify-center text-rose-600 dark:text-rose-400">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
           </span>
         </div>
-        <div class="mt-2 sm:mt-2.5">
-          <div id="stat-cc-due" class="text-lg sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tracking-tight">₹0</div>
+        <div class="mt-2">
+          <div id="stat-cc-due" class="text-lg sm:text-xl font-bold text-rose-600 dark:text-rose-400 tracking-tight">₹0</div>
           <div id="stat-cc-breakdown" class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap gap-1">
             <!-- Dynamic pills for ICICI & Kotak -->
           </div>
@@ -191,17 +210,17 @@
         <div class="absolute bottom-0 left-0 right-0 h-1 bg-rose-500"></div>
       </div>
 
-      <!-- 4. Splitwise & Roommates Ledger -->
-      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
+      <!-- 5. Splitwise & Roommates Ledger -->
+      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Splitwise Ledger</span>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Splitwise</span>
           <span class="w-6 h-6 rounded-lg bg-indigo-50 dark:bg-indigo-950/80 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs">
             👥
           </span>
         </div>
-        <div class="mt-2 sm:mt-2.5">
-          <div id="stat-split-net" class="text-lg sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">₹0</div>
-          <div class="text-[10px] mt-1 flex flex-wrap gap-1.5">
+        <div class="mt-2">
+          <div id="stat-split-net" class="text-lg sm:text-xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">₹0</div>
+          <div class="text-[10px] mt-1 flex flex-wrap gap-1">
             <span id="stat-owed-to-me-pill" class="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-medium border border-emerald-100 dark:border-emerald-800/60">They owe: ₹0</span>
             <span id="stat-you-owe-pill" class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-medium border border-amber-100 dark:border-amber-800/60">You owe: ₹0</span>
           </div>
@@ -209,21 +228,54 @@
         <div class="absolute bottom-0 left-0 right-0 h-1 bg-indigo-500"></div>
       </div>
 
-      <!-- 5. To Collect Back (Salary / Family / Partner Reimbursements) -->
-      <div class="col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
+      <!-- 6. To Collect Back (Salary / Family / Partner Reimbursements) -->
+      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">To Collect Back</span>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">To Collect</span>
           <span class="w-6 h-6 rounded-lg bg-cyan-50 dark:bg-cyan-950/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400 font-bold text-xs">
             💼
           </span>
         </div>
-        <div class="mt-2 sm:mt-2.5">
-          <div id="stat-reimburse-pending" class="text-lg sm:text-2xl font-bold text-cyan-600 dark:text-cyan-400 tracking-tight">₹0</div>
-          <p id="stat-reimburse-note" class="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">0 pending to take back</p>
+        <div class="mt-2">
+          <div id="stat-reimburse-pending" class="text-lg sm:text-xl font-bold text-cyan-600 dark:text-cyan-400 tracking-tight">₹0</div>
+          <p id="stat-reimburse-note" class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">0 pending to take back</p>
         </div>
         <div class="absolute bottom-0 left-0 right-0 h-1 bg-cyan-500"></div>
       </div>
 
+    </div>
+
+    <!-- Mutual Fund SIP Auto-Debit Reminders & Minimum Balance Guard Banner -->
+    <div id="mf-sip-section" class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-violet-200/90 dark:border-violet-900/60 shadow-sm transition-colors space-y-3.5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-xl bg-violet-50 dark:bg-violet-950/80 text-violet-600 dark:text-violet-400 flex items-center justify-center font-bold text-sm shrink-0">
+            📈
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white leading-tight">Mutual Fund SIP Auto-Debit Schedule & Balance Guard</h2>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Tracks upcoming SIP due dates, deducts pending SIPs to show real spendable cash, and warns before NACH bounce charges</p>
+          </div>
+        </div>
+        <div class="flex items-center flex-wrap gap-2">
+          <span id="mf-summary-pill" class="text-xs font-bold px-2.5 py-1 rounded-xl bg-violet-50 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800">
+            Monthly SIPs: ₹0
+          </span>
+          <button type="button" id="jump-to-mf-tab-btn" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl text-white bg-violet-600 hover:bg-violet-500 transition shadow-xs">
+            + Add / Log Mutual Fund
+          </button>
+        </div>
+      </div>
+
+      <!-- Low Bank Balance Warning Banner (Shown automatically if a bank has less balance than its upcoming SIPs) -->
+      <div id="mf-low-balance-alert" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs space-y-1">
+        <!-- Populated dynamically via JS -->
+      </div>
+
+      <!-- Grid of Scheduled Mutual Fund SIPs -->
+      <div id="mf-sip-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <!-- Populated dynamically via JS -->
+      </div>
     </div>
 
     <!-- Credit Card Billing Cycle, Statement & Due Date Reminders Banner -->
@@ -254,16 +306,19 @@
       <!-- LEFT COLUMN: Quick Entry & Category Breakdown (5 Cols on large) -->
       <div class="lg:col-span-5 space-y-5 sm:space-y-6">
 
-        <!-- Quick Transaction & Salary Form Card -->
-        <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm transition-colors">
+        <!-- Quick Transaction, Salary & Mutual Fund Form Card -->
+        <div id="quick-entry-card" class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm transition-colors">
           
-          <!-- Mode Switcher Tabs: Log Expense vs Send Salary -->
-          <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-4">
-            <button type="button" id="tab-btn-expense" class="py-2 px-3 rounded-lg text-xs font-bold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs transition flex items-center justify-center gap-1.5">
-              <span>🛒 Log Expense</span>
+          <!-- Mode Switcher Tabs: Log Expense vs Send Salary vs Mutual Fund SIP -->
+          <div class="grid grid-cols-3 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-4">
+            <button type="button" id="tab-btn-expense" class="py-2 px-2 rounded-lg text-[11px] sm:text-xs font-bold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs transition flex items-center justify-center gap-1 truncate">
+              <span>🛒 Expense</span>
             </button>
-            <button type="button" id="tab-btn-salary" class="py-2 px-3 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex items-center justify-center gap-1.5">
-              <span>💼 Send Salary</span>
+            <button type="button" id="tab-btn-salary" class="py-2 px-2 rounded-lg text-[11px] sm:text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex items-center justify-center gap-1 truncate">
+              <span>💼 Salary</span>
+            </button>
+            <button type="button" id="tab-btn-mf" class="py-2 px-2 rounded-lg text-[11px] sm:text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex items-center justify-center gap-1 truncate">
+              <span>📈 Mutual Fund</span>
             </button>
           </div>
 
@@ -341,18 +396,22 @@
               </div>
             </div>
 
-            <!-- Amount & Date -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-              <div>
+            <!-- Amount, Date & Optional Time -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 sm:gap-2">
+              <div class="sm:col-span-5">
                 <label for="tx-amount" id="tx-amount-label" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Total Bill Paid (₹) *</label>
                 <div class="relative">
                   <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 dark:text-slate-500 font-medium">₹</span>
-                  <input type="number" id="tx-amount" step="any" min="0.01" required placeholder="1000" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900 dark:text-white transition-colors">
+                  <input type="number" id="tx-amount" step="any" min="0.01" required placeholder="1000" class="w-full pl-8 pr-2.5 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900 dark:text-white transition-colors">
                 </div>
               </div>
-              <div>
+              <div class="sm:col-span-4">
                 <label for="tx-date" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Date *</label>
-                <input type="date" id="tx-date" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 transition-colors">
+                <input type="date" id="tx-date" required class="w-full px-2.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 transition-colors">
+              </div>
+              <div class="sm:col-span-3">
+                <label for="tx-time" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Time</label>
+                <input type="time" id="tx-time" class="w-full px-2 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 transition-colors">
               </div>
             </div>
 
@@ -505,6 +564,99 @@
               <span>💼 Log Salary Sent</span>
             </button>
           </form>
+
+          <!-- FORM 3: MUTUAL FUND SIP & INVESTMENT FORM -->
+          <form id="mf-form" class="space-y-3.5 sm:space-y-4 hidden">
+            <div class="bg-violet-50/80 dark:bg-violet-950/30 border border-violet-200/70 dark:border-violet-900/60 rounded-xl p-3 text-[11px] text-violet-900 dark:text-violet-200 leading-relaxed">
+              Add your monthly Mutual Fund SIPs so SpendFlow reserves that cash from your bank balance and reminds you before auto-debit day to prevent minimum-balance/NACH bounce charges.
+            </div>
+
+            <!-- Entry Type Switcher: Recurring Monthly SIP vs One-Time Lump Sum -->
+            <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-[11px] font-semibold text-center">
+              <label class="cursor-pointer">
+                <input type="radio" name="mfEntryType" value="sip_schedule" checked class="peer sr-only">
+                <div class="py-2 px-2 rounded-lg peer-checked:bg-violet-600 peer-checked:text-white peer-checked:shadow-xs text-slate-600 dark:text-slate-400 transition-all">
+                  📅 Monthly SIP Reminder
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="mfEntryType" value="lump_sum" class="peer sr-only">
+                <div class="py-2 px-2 rounded-lg peer-checked:bg-violet-600 peer-checked:text-white peer-checked:shadow-xs text-slate-600 dark:text-slate-400 transition-all">
+                  ⚡ One-Time / Lump Sum
+                </div>
+              </label>
+            </div>
+
+            <!-- Fund Name & Amount -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+              <div>
+                <label for="mf-name" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Mutual Fund Name *</label>
+                <input type="text" id="mf-name" required placeholder="e.g. Parag Parikh Flexi Cap, Nifty 50" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 font-medium text-slate-900 dark:text-white transition-colors">
+              </div>
+              <div>
+                <label for="mf-amount" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">SIP / Investment Amount (₹) *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 dark:text-slate-500 font-medium">₹</span>
+                  <input type="number" id="mf-amount" step="any" min="1" required placeholder="25000" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 font-semibold text-slate-900 dark:text-white transition-colors">
+                </div>
+              </div>
+            </div>
+
+            <!-- Auto-Debit Bank Account & Investment Platform -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+              <div>
+                <label for="mf-bank-id" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Auto-Debit From Bank</label>
+                <select id="mf-bank-id" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 text-slate-800 dark:text-slate-100 transition-colors font-medium">
+                  <!-- Populated via JS: Kotak, ICICI, BoB -->
+                </select>
+              </div>
+              <div>
+                <label for="mf-app" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Platform / App</label>
+                <select id="mf-app" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-600 text-slate-800 dark:text-slate-100 transition-colors font-medium">
+                  <option value="Groww">Groww</option>
+                  <option value="Zerodha Coin">Zerodha Coin</option>
+                  <option value="Kuvera">Kuvera</option>
+                  <option value="INDmoney">INDmoney</option>
+                  <option value="MFCentral">MFCentral / CAMS</option>
+                  <option value="Paytm Money">Paytm Money</option>
+                  <option value="Direct AMC">Direct AMC / Bank NACH</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Conditional Row A: Monthly SIP Auto-Debit Day -->
+            <div id="mf-sip-day-row" class="bg-violet-50/60 dark:bg-violet-950/40 border border-violet-200/70 dark:border-violet-800/70 rounded-xl p-3 space-y-2.5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 items-center">
+                <div>
+                  <label for="mf-sip-day" class="block text-xs font-semibold text-violet-900 dark:text-violet-200 mb-1">Auto-Debit Day of Month (1–31) *</label>
+                  <input type="number" id="mf-sip-day" min="1" max="31" value="5" class="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-800 border border-violet-300 dark:border-violet-700 rounded-lg font-bold text-slate-900 dark:text-white">
+                </div>
+                <div class="text-[11px] text-violet-800 dark:text-violet-300 leading-tight">
+                  🔔 SpendFlow will warn you if your selected bank balance drops below this SIP amount before the due date.
+                </div>
+              </div>
+              <label class="flex items-center space-x-2 cursor-pointer pt-1 border-t border-violet-200/60 dark:border-violet-800/60">
+                <input type="checkbox" id="mf-also-debit-now" class="w-4 h-4 text-violet-600 rounded border-slate-300 dark:border-slate-600 focus:ring-violet-500 bg-white dark:bg-slate-800">
+                <span class="text-xs font-medium text-violet-950 dark:text-violet-200">Already debited this month? (Deduct from bank balance immediately)</span>
+              </label>
+            </div>
+
+            <!-- Conditional Row B: One-Time Investment Date & Time -->
+            <div id="mf-onetime-date-row" class="hidden grid grid-cols-2 gap-2.5 sm:gap-3">
+              <div>
+                <label for="mf-date" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Investment Date *</label>
+                <input type="date" id="mf-date" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100">
+              </div>
+              <div>
+                <label for="mf-time" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Time</label>
+                <input type="time" id="mf-time" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100">
+              </div>
+            </div>
+
+            <button type="submit" id="mf-submit-btn" class="w-full py-2.5 px-4 rounded-xl text-white font-semibold text-sm bg-violet-600 hover:bg-violet-500 active:scale-[0.99] transition shadow-sm flex items-center justify-center space-x-2">
+              <span>📈 Save Monthly SIP & Reminder</span>
+            </button>
+          </form>
         </div>
 
         <!-- Category Breakdown Card -->
@@ -566,6 +718,7 @@
               <button data-filter="card" class="tx-filter-btn px-2.5 py-1 rounded-lg hover:text-slate-900 dark:hover:text-white">Cards</button>
               <button data-filter="split" class="tx-filter-btn px-2.5 py-1 rounded-lg hover:text-slate-900 dark:hover:text-white">Splitwise</button>
               <button data-filter="salary" class="tx-filter-btn px-2.5 py-1 rounded-lg hover:text-slate-900 dark:hover:text-white">Salaries</button>
+              <button data-filter="investment" class="tx-filter-btn px-2.5 py-1 rounded-lg hover:text-slate-900 dark:hover:text-white">Investments</button>
             </div>
           </div>
 
@@ -950,6 +1103,85 @@
     </div>
   </div>
 
+  <!-- 7. Edit Any Transaction Modal -->
+  <div id="edit-tx-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto text-slate-900 dark:text-slate-100">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Edit Transaction</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Update name, amount, date, time, account, or category</p>
+        </div>
+        <button type="button" id="close-edit-tx-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="edit-tx-form" class="space-y-3.5">
+        <input type="hidden" id="edit-tx-id">
+
+        <div>
+          <label for="edit-tx-desc" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Description / Name *</label>
+          <input type="text" id="edit-tx-desc" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="edit-tx-amount" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Amount (₹) *</label>
+            <input type="number" id="edit-tx-amount" step="any" min="0.01" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-bold">
+          </div>
+          <div>
+            <label for="edit-tx-category" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Category</label>
+            <input type="text" id="edit-tx-category" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="edit-tx-date" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Date *</label>
+            <input type="date" id="edit-tx-date" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+          </div>
+          <div>
+            <label for="edit-tx-time" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Time (Optional)</label>
+            <input type="time" id="edit-tx-time" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+          </div>
+        </div>
+
+        <!-- Bank & App Selector inside Edit Modal (Shown when applicable) -->
+        <div id="edit-tx-bank-row" class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="edit-tx-bank-id" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Bank Account</label>
+            <select id="edit-tx-bank-id" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"></select>
+          </div>
+          <div>
+            <label for="edit-tx-upi-app" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">App / UPI Used</label>
+            <input type="text" id="edit-tx-upi-app" placeholder="e.g. GPay, Groww, Kotak App" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
+          </div>
+        </div>
+
+        <!-- Card Selector inside Edit Modal (Shown when CC expense) -->
+        <div id="edit-tx-card-row" class="hidden">
+          <label for="edit-tx-card-id" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Credit Card</label>
+          <select id="edit-tx-card-id" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"></select>
+        </div>
+
+        <!-- Split Share Editor (Shown when transaction is a Splitwise bill) -->
+        <div id="edit-tx-split-row" class="hidden bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 p-3 rounded-xl">
+          <label for="edit-tx-my-share" class="block text-xs font-semibold text-indigo-900 dark:text-indigo-200 mb-1">Your Personal Share of Bill (₹)</label>
+          <input type="number" id="edit-tx-my-share" step="any" min="0" class="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700 rounded-lg text-slate-900 dark:text-white font-semibold">
+        </div>
+
+        <div class="pt-2 flex items-center justify-end space-x-2 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" id="cancel-edit-tx-btn" class="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition shadow-sm">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 dark:bg-indigo-600 text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg flex items-center space-x-3 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-200">
     <span id="toast-message">Action saved</span>
@@ -974,6 +1206,7 @@
         { id: 'cc_icici', name: 'ICICI Credit Card', initialDue: 0, cycleStartDay: 15, cycleEndDay: 14, statementDay: 14, dueDay: 2 },
         { id: 'cc_kotak', name: 'Kotak Credit Card', initialDue: 0, cycleStartDay: 20, cycleEndDay: 19, statementDay: 19, dueDay: 8 }
       ],
+      mutualFunds: [],
       passcodeEnabled: true,
       passcode: '1234',
       transactions: []
@@ -1002,6 +1235,17 @@
           dueDay: Number(c.dueDay) || 15
         }));
 
+        const mutualFunds = Array.isArray(parsed.mutualFunds)
+          ? parsed.mutualFunds.map(mf => ({
+              id: mf.id || ('mf_' + Math.random().toString(36).substring(2, 7)),
+              name: mf.name || 'Mutual Fund SIP',
+              amount: Number(mf.amount) || 0,
+              sipDay: Math.min(31, Math.max(1, Number(mf.sipDay) || 5)),
+              bankId: mf.bankId || (banks[0] ? banks[0].id : 'bank_kotak'),
+              app: mf.app || 'Groww'
+            }))
+          : [];
+
         // Default passcodeEnabled to true so fresh loads are always protected
         const hasExplicitToggle = typeof parsed.passcodeEnabled === 'boolean';
         const savedPasscode = parsed.passcode ? String(parsed.passcode) : '1234';
@@ -1009,6 +1253,7 @@
         return {
           bankAccounts: banks,
           creditCards: cards,
+          mutualFunds,
           passcodeEnabled: hasExplicitToggle ? (parsed.passcode ? parsed.passcodeEnabled : true) : true,
           passcode: savedPasscode,
           transactions: Array.isArray(parsed.transactions) ? parsed.transactions : []
@@ -1104,6 +1349,7 @@
       'Transport': { bg: 'bg-purple-100 dark:bg-purple-950/70', text: 'text-purple-800 dark:text-purple-300', bar: '#a855f7' },
       'Shopping': { bg: 'bg-pink-100 dark:bg-pink-950/70', text: 'text-pink-800 dark:text-pink-300', bar: '#ec4899' },
       'Salaries & Staff': { bg: 'bg-cyan-100 dark:bg-cyan-950/70', text: 'text-cyan-800 dark:text-cyan-300', bar: '#06b6d4' },
+      'Mutual Fund / SIP': { bg: 'bg-violet-100 dark:bg-violet-950/70', text: 'text-violet-800 dark:text-violet-300', bar: '#8b5cf6' },
       'Miscellaneous': { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-800 dark:text-slate-300', bar: '#64748b' },
       'CC Bill Payment': { bg: 'bg-indigo-100 dark:bg-indigo-950/70', text: 'text-indigo-800 dark:text-indigo-300', bar: '#6366f1' },
       'Repayment Received': { bg: 'bg-emerald-100 dark:bg-emerald-950/70', text: 'text-emerald-800 dark:text-emerald-300', bar: '#10b981' },
@@ -1174,11 +1420,17 @@
     }
 
     /**
-     * Core Double-Entry, Splitwise & Salary Reimbursement Ledger Engine
+     * Core Double-Entry, Splitwise, Mutual Fund SIP & Salary Reimbursement Ledger Engine
      */
+    function getCurrentYearMonth() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+
     function calculateLedger() {
       let myTruePersonalSpends = 0;
       let totalGrossOutflow = 0;
+      let totalInvested = 0;
       let splitOwedToMe = 0;
       let splitIOweRoommates = 0;
       let pendingReimbursementsTotal = 0;
@@ -1192,7 +1444,9 @@
           initialBalance: Number(b.initialBalance) || 0,
           debits: 0,
           inflows: 0,
-          currentBalance: Number(b.initialBalance) || 0
+          currentBalance: Number(b.initialBalance) || 0,
+          pendingSipAmount: 0,
+          freeAfterSip: Number(b.initialBalance) || 0
         };
       });
       const fallbackBankId = appData.bankAccounts[0]?.id;
@@ -1232,6 +1486,11 @@
         } else if (tx.type === 'roommate_settlement') {
           if (bId && bankMap[bId]) bankMap[bId].debits += grossAmount;
           splitIOweRoommates -= grossAmount;
+        } else if (tx.type === 'investment') {
+          // Mutual Fund SIP or Lump Sum Investment
+          if (bId && bankMap[bId]) bankMap[bId].debits += grossAmount;
+          totalGrossOutflow += grossAmount;
+          totalInvested += grossAmount;
         } else if (tx.type === 'salary') {
           // Salary sent from user's bank account
           if (bId && bankMap[bId]) bankMap[bId].debits += grossAmount;
@@ -1283,12 +1542,35 @@
         }
       });
 
+      // Compute Scheduled Monthly SIPs status for current month
+      const currentYM = getCurrentYearMonth();
+      let totalMonthlySipCommitment = 0;
+      let pendingSipThisMonth = 0;
+
+      (appData.mutualFunds || []).forEach(mf => {
+        const amt = Number(mf.amount) || 0;
+        totalMonthlySipCommitment += amt;
+        const isPaidThisMonth = appData.transactions.some(
+          tx => tx.type === 'investment' && tx.mfId === mf.id && tx.date && tx.date.startsWith(currentYM)
+        );
+        if (!isPaidThisMonth) {
+          pendingSipThisMonth += amt;
+          const bId = (mf.bankId && bankMap[mf.bankId]) ? mf.bankId : fallbackBankId;
+          if (bId && bankMap[bId]) {
+            bankMap[bId].pendingSipAmount += amt;
+          }
+        }
+      });
+
       let totalBankBalance = 0;
       Object.keys(bankMap).forEach(id => {
         const b = bankMap[id];
         b.currentBalance = b.initialBalance - b.debits + b.inflows;
+        b.freeAfterSip = b.currentBalance - b.pendingSipAmount;
         totalBankBalance += b.currentBalance;
       });
+
+      const freeBankBalanceAfterSips = totalBankBalance - pendingSipThisMonth;
 
       let totalCreditCardOutstanding = 0;
       Object.keys(cardMap).forEach(id => {
@@ -1308,9 +1590,13 @@
 
       return {
         totalBankBalance,
+        freeBankBalanceAfterSips,
         bankMap,
         myTruePersonalSpends,
         totalGrossOutflow,
+        totalInvested,
+        totalMonthlySipCommitment,
+        pendingSipThisMonth,
         totalCreditCardOutstanding,
         cardMap,
         splitOwedToMe: finalOwedToMe,
@@ -1403,13 +1689,21 @@
     function renderOverview() {
       const ledger = calculateLedger();
 
-      // 1. Bank Balance & Per-Bank breakdown tags
+      // 1. Bank Balance, Free-after-SIPs & Per-Bank breakdown tags
       const currentBalEl = document.getElementById('stat-current-balance');
       if (currentBalEl) {
         currentBalEl.textContent = formatCurrency(ledger.totalBankBalance);
         currentBalEl.className = ledger.totalBankBalance < 0 
-          ? 'text-lg sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tracking-tight'
-          : 'text-lg sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight';
+          ? 'text-lg sm:text-xl font-bold text-rose-600 dark:text-rose-400 tracking-tight'
+          : 'text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight';
+      }
+
+      const freeAfterSipEl = document.getElementById('stat-free-after-sip');
+      if (freeAfterSipEl) {
+        freeAfterSipEl.textContent = `Free after SIPs: ${formatCurrency(ledger.freeBankBalanceAfterSips)}`;
+        freeAfterSipEl.className = ledger.freeBankBalanceAfterSips < 0
+          ? 'text-[10px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 px-1.5 py-0.5 rounded mt-1 inline-block'
+          : 'text-[10px] font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200/70 dark:border-teal-800/70 px-1.5 py-0.5 rounded mt-1 inline-block';
       }
       
       const bankBreakdownEl = document.getElementById('stat-bank-breakdown');
@@ -1424,20 +1718,26 @@
         });
       }
 
-      // 2. Real Spends
+      // 2. Mutual Funds & SIP Card
+      const mfPendingEl = document.getElementById('stat-mf-pending');
+      if (mfPendingEl) mfPendingEl.textContent = formatCurrency(ledger.pendingSipThisMonth);
+      const mfInvestedNote = document.getElementById('stat-mf-invested-note');
+      if (mfInvestedNote) mfInvestedNote.textContent = `Invested: ${formatCurrency(ledger.totalInvested)}`;
+
+      // 3. Real Spends
       const totalSpentEl = document.getElementById('stat-total-spent');
       if (totalSpentEl) totalSpentEl.textContent = formatCurrency(ledger.myTruePersonalSpends);
 
       const grossOutflowEl = document.getElementById('stat-gross-outflow-note');
-      if (grossOutflowEl) grossOutflowEl.textContent = `Total paid upfront: ${formatCurrency(ledger.totalGrossOutflow)}`;
+      if (grossOutflowEl) grossOutflowEl.textContent = `Total outflow: ${formatCurrency(ledger.totalGrossOutflow)}`;
 
-      // 3. CC Outstanding + Breakdown badges
+      // 4. CC Outstanding + Breakdown badges
       const ccDueEl = document.getElementById('stat-cc-due');
       if (ccDueEl) {
         ccDueEl.textContent = formatCurrency(ledger.totalCreditCardOutstanding);
         ccDueEl.className = ledger.totalCreditCardOutstanding > 0 
-          ? 'text-lg sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tracking-tight' 
-          : 'text-lg sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight';
+          ? 'text-lg sm:text-xl font-bold text-rose-600 dark:text-rose-400 tracking-tight' 
+          : 'text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight';
       }
 
       const ccBreakdownEl = document.getElementById('stat-cc-breakdown');
@@ -1452,18 +1752,18 @@
         });
       }
 
-      // 4. Splitwise Ledger
+      // 5. Splitwise Ledger
       const splitNetEl = document.getElementById('stat-split-net');
       if (splitNetEl) {
         if (ledger.netSplit > 0) {
           splitNetEl.textContent = `+${formatCurrency(ledger.netSplit)} Net`;
-          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight';
+          splitNetEl.className = 'text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight';
         } else if (ledger.netSplit < 0) {
           splitNetEl.textContent = `-${formatCurrency(Math.abs(ledger.netSplit))} Net`;
-          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tracking-tight';
+          splitNetEl.className = 'text-lg sm:text-xl font-bold text-rose-600 dark:text-rose-400 tracking-tight';
         } else {
           splitNetEl.textContent = '₹0 Settled';
-          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight';
+          splitNetEl.className = 'text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight';
         }
       }
 
@@ -1683,7 +1983,7 @@
       const ledger = calculateLedger();
 
       // 1. Bank Dropdowns
-      const bankDropdownIds = ['tx-bank-id', 'sal-bank-id', 'modal-pay-bank-select', 'modal-receive-bank-select', 'modal-settle-bank-select'];
+      const bankDropdownIds = ['tx-bank-id', 'sal-bank-id', 'mf-bank-id', 'edit-tx-bank-id', 'modal-pay-bank-select', 'modal-receive-bank-select', 'modal-settle-bank-select'];
       bankDropdownIds.forEach(selectId => {
         const el = document.getElementById(selectId);
         if (!el) return;
@@ -1702,13 +2002,16 @@
       // 2. Card Dropdowns
       const txCardSelect = document.getElementById('tx-card-id');
       const payCardSelect = document.getElementById('modal-pay-card-select');
+      const editCardSelect = document.getElementById('edit-tx-card-id');
       if (!txCardSelect || !payCardSelect) return;
 
       const prevTxVal = txCardSelect.value;
       const prevPayVal = payCardSelect.value;
+      const prevEditVal = editCardSelect ? editCardSelect.value : null;
 
       txCardSelect.innerHTML = '';
       payCardSelect.innerHTML = '';
+      if (editCardSelect) editCardSelect.innerHTML = '';
 
       appData.creditCards.forEach(c => {
         const stat = ledger.cardMap[c.id];
@@ -1723,78 +2026,206 @@
         opt2.value = c.id;
         opt2.textContent = `${c.name} (Due: ${dueFormatted})`;
         payCardSelect.appendChild(opt2);
+
+        if (editCardSelect) {
+          const opt3 = document.createElement('option');
+          opt3.value = c.id;
+          opt3.textContent = `${c.name} (Due: ${dueFormatted})`;
+          editCardSelect.appendChild(opt3);
+        }
       });
 
       if (prevTxVal && ledger.cardMap[prevTxVal]) txCardSelect.value = prevTxVal;
       if (prevPayVal && ledger.cardMap[prevPayVal]) payCardSelect.value = prevPayVal;
+      if (editCardSelect && prevEditVal && ledger.cardMap[prevEditVal]) editCardSelect.value = prevEditVal;
+    }
+
+    /**
+     * Render Mutual Fund SIP Schedule, Due Date Reminders & Minimum Balance Guard
+     */
+    function renderMutualFundsSection() {
+      const grid = document.getElementById('mf-sip-cards-grid');
+      const summaryPill = document.getElementById('mf-summary-pill');
+      const lowBalAlert = document.getElementById('mf-low-balance-alert');
+      if (!grid || !summaryPill) return;
+
+      const ledger = calculateLedger();
+      summaryPill.textContent = `Monthly SIPs: ${formatCurrency(ledger.totalMonthlySipCommitment)} • Pending: ${formatCurrency(ledger.pendingSipThisMonth)}`;
+
+      // Check if any bank account has less balance than its pending SIPs this month
+      const shortfallWarnings = [];
+      Object.values(ledger.bankMap).forEach(b => {
+        if (b.pendingSipAmount > 0 && b.currentBalance < b.pendingSipAmount) {
+          const shortBy = b.pendingSipAmount - b.currentBalance;
+          shortfallWarnings.push(
+            `<div>⚠️ <strong>LOW BALANCE ALERT (${escapeHtml(b.name)}):</strong> You have <strong>${formatCurrency(b.pendingSipAmount)}</strong> in pending SIPs linked to ${escapeHtml(b.name)}, but its balance is only <strong>${formatCurrency(b.currentBalance)}</strong>. Deposit at least <strong>${formatCurrency(shortBy)}</strong> to avoid NACH/auto-debit bounce charges!</div>`
+          );
+        }
+      });
+
+      if (lowBalAlert) {
+        if (shortfallWarnings.length > 0) {
+          lowBalAlert.innerHTML = shortfallWarnings.join('');
+          lowBalAlert.classList.remove('hidden');
+        } else {
+          lowBalAlert.classList.add('hidden');
+        }
+      }
+
+      if (!appData.mutualFunds || appData.mutualFunds.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-4 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-dashed border-slate-200 dark:border-slate-700">
+            <p class="text-xs font-medium text-slate-600 dark:text-slate-300">No monthly Mutual Fund SIPs added yet.</p>
+            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Click "+ Add / Log Mutual Fund" to add your SIPs, track due dates, and see your real spendable bank balance after SIP commitments.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const currentYM = getCurrentYearMonth();
+
+      grid.innerHTML = '';
+      appData.mutualFunds.forEach(mf => {
+        const sipDay = Math.min(31, Math.max(1, Number(mf.sipDay) || 5));
+        const bankStat = ledger.bankMap[mf.bankId] || Object.values(ledger.bankMap)[0];
+        const bankName = bankStat ? bankStat.name : 'Bank';
+        const bankBal = bankStat ? bankStat.currentBalance : 0;
+
+        const isPaidThisMonth = appData.transactions.some(
+          tx => tx.type === 'investment' && tx.mfId === mf.id && tx.date && tx.date.startsWith(currentYM)
+        );
+
+        let dueDateThisMonth = makeClampedDate(today.getFullYear(), today.getMonth(), sipDay);
+        let nextSipDate = isPaidThisMonth
+          ? makeClampedDate(today.getFullYear(), today.getMonth() + 1, sipDay)
+          : dueDateThisMonth;
+        const daysToSip = Math.round((nextSipDate - today) / 86400000);
+
+        const isBankShort = !isPaidThisMonth && bankBal < mf.amount;
+
+        let badgeHtml = '';
+        let cardBorder = 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50';
+
+        if (isPaidThisMonth) {
+          badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">✓ Debited This Month</span>`;
+        } else if (daysToSip < 0) {
+          cardBorder = 'border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/30';
+          badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">⏳ Due ${formatShortDate(nextSipDate)} (Pending Debit)</span>`;
+        } else if (daysToSip === 0) {
+          cardBorder = 'border-rose-400 dark:border-rose-700 bg-rose-50/60 dark:bg-rose-950/40';
+          badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white animate-pulse">🚨 Auto-Debit Today!</span>`;
+        } else if (daysToSip <= 4) {
+          cardBorder = 'border-violet-300 dark:border-violet-700 bg-violet-50/50 dark:bg-violet-950/30';
+          badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-600 text-white">⏰ Due in ${daysToSip}d (${formatShortDate(nextSipDate)})</span>`;
+        } else {
+          badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300">Due ${getOrdinalSuffix(sipDay)} (in ${daysToSip}d)</span>`;
+        }
+
+        const item = document.createElement('div');
+        item.className = `p-3.5 rounded-xl border ${cardBorder} flex flex-col justify-between gap-2.5 transition-all`;
+        item.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">${escapeHtml(mf.name)}</h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Auto-debit: <strong>${getOrdinalSuffix(sipDay)} of month</strong> • ${escapeHtml(mf.app || 'Groww')}
+              </p>
+            </div>
+            ${badgeHtml}
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-200/70 dark:border-slate-700/70 text-xs">
+            <div>
+              <span class="block text-[10px] text-slate-400 dark:text-slate-500">Monthly SIP</span>
+              <span class="font-bold text-sm text-violet-600 dark:text-violet-400">${formatCurrency(mf.amount)}</span>
+            </div>
+            <div class="text-right">
+              <span class="block text-[10px] text-slate-400 dark:text-slate-500">Linked Bank (${escapeHtml(bankName)})</span>
+              <span class="font-semibold text-[11px] ${isBankShort ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-emerald-600 dark:text-emerald-400'}">
+                Bal: ${formatCurrency(bankBal)} ${isBankShort ? '⚠️ Low!' : '✓'}
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-1 gap-2">
+            ${!isPaidThisMonth ? `
+              <button type="button" data-trigger-sip-id="${mf.id}" class="flex-1 py-1.5 px-2.5 rounded-lg text-[11px] font-bold bg-violet-600 hover:bg-violet-500 text-white shadow-xs transition text-center">
+                ✓ Mark Debited (${formatCurrency(mf.amount)})
+              </button>
+            ` : `
+              <span class="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Next debit: ${formatShortDate(nextSipDate)}</span>
+            `}
+            <button type="button" data-delete-sip-id="${mf.id}" title="Remove SIP schedule" class="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-200/70 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition">
+              Remove
+            </button>
+          </div>
+        `;
+        grid.appendChild(item);
+      });
     }
 
     /**
      * Render Pending Reimbursements ("To Collect Back" Section)
      */
     function renderReimbursements() {
-      const listContainer = document.getElementById('reimbursements-list');
-      const badgeTotal = document.getElementById('reimburse-badge-total');
-      if (!listContainer || !badgeTotal) return;
-
-      const ledger = calculateLedger();
-      badgeTotal.textContent = `${formatCurrency(ledger.pendingReimbursementsTotal)} Pending`;
+      const listEl = document.getElementById('reimbursements-list');
+      const badgeEl = document.getElementById('reimburse-badge-total');
+      if (!listEl || !badgeEl) return;
 
       const bankLookup = {};
       appData.bankAccounts.forEach(b => { bankLookup[b.id] = b.name; });
 
       const pendingList = appData.transactions.filter(
         tx => tx.type === 'salary' && tx.needsReimbursement && !tx.reimbursed
-      ).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      );
+
+      const totalPending = pendingList.reduce((acc, t) => acc + (Number(t.amount) || 0), 0);
+      badgeEl.textContent = `${formatCurrency(totalPending)} Pending`;
 
       if (pendingList.length === 0) {
-        listContainer.innerHTML = `
+        listEl.innerHTML = `
           <div class="text-center py-4 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-dashed border-slate-200 dark:border-slate-700">
-            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">No pending money to take back right now.</p>
-            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">When you send a salary on someone's behalf, check "Need to take this money back" to track it here.</p>
+            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">No pending money to collect back right now.</p>
+            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">When you send a salary on someone's behalf, check "Need to take this money back" and it will appear here.</p>
           </div>
         `;
         return;
       }
 
-      listContainer.innerHTML = '';
+      listEl.innerHTML = '';
       pendingList.forEach(tx => {
         const bankName = bankLookup[tx.bankId] || 'Bank';
-        const appName = tx.upiApp || 'App';
-        const timeFormatted = tx.time ? ` at ${formatTime(tx.time)}` : '';
-        const collectFrom = tx.reimburseFrom || 'Family / Partner';
+        const timeStr = tx.time ? ` at ${formatTime(tx.time)}` : '';
+        const bankOptionsHtml = appData.bankAccounts.map(b =>
+          `<option value="${b.id}" ${b.id === tx.bankId ? 'selected' : ''}>into ${escapeHtml(b.name)}</option>`
+        ).join('');
 
-        // Build options for which bank account received the money back
-        let bankOptionsHtml = '';
-        appData.bankAccounts.forEach(b => {
-          const selected = b.id === tx.bankId ? 'selected' : '';
-          bankOptionsHtml += `<option value="${b.id}" ${selected}>into ${escapeHtml(b.name)}</option>`;
-        });
-
-        const card = document.createElement('div');
-        card.className = 'p-3 rounded-xl bg-cyan-50/60 dark:bg-cyan-950/40 border border-cyan-200/80 dark:border-cyan-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5';
-        card.innerHTML = `
-          <div class="space-y-0.5 min-w-0">
-            <div class="flex items-center space-x-2 flex-wrap">
-              <span class="text-xs font-bold text-slate-900 dark:text-white">Take ${formatCurrency(tx.amount)} from <span class="text-cyan-700 dark:text-cyan-300 underline decoration-cyan-400/60">${escapeHtml(collectFrom)}</span></span>
+        const row = document.createElement('div');
+        row.className = 'p-3 rounded-xl bg-cyan-50/60 dark:bg-cyan-950/30 border border-cyan-200/80 dark:border-cyan-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5';
+        row.innerHTML = `
+          <div class="min-w-0">
+            <div class="flex items-center flex-wrap gap-1.5">
+              <span class="text-xs font-bold text-slate-900 dark:text-white">Take back ${formatCurrency(tx.amount)} from <span class="text-cyan-700 dark:text-cyan-300 underline decoration-cyan-400/60">${escapeHtml(tx.reimburseFrom || 'Family/Partner')}</span></span>
               <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                Salary to: ${escapeHtml(tx.recipient || tx.description)}
+                Sent to: ${escapeHtml(tx.recipient || tx.description)}
               </span>
             </div>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400">
-              Sent on ${formatDate(tx.date)}${escapeHtml(timeFormatted)} • Debited from <strong>${escapeHtml(bankName)}</strong> via <strong>${escapeHtml(appName)}</strong>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              Paid via <strong>${escapeHtml(tx.upiApp || 'UPI')}</strong> from <strong>${escapeHtml(bankName)}</strong> • ${formatDate(tx.date)}${escapeHtml(timeStr)}
             </p>
           </div>
           <div class="flex items-center space-x-1.5 shrink-0">
-            <select data-reimburse-bank-for="${tx.id}" class="text-[11px] px-2 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-cyan-200 dark:border-cyan-700 text-slate-700 dark:text-slate-200 font-medium">
+            <select data-reimburse-bank-for="${tx.id}" class="px-2 py-1.5 text-[11px] bg-white dark:bg-slate-800 border border-cyan-300 dark:border-cyan-700 rounded-lg text-slate-800 dark:text-slate-200 font-medium">
               ${bankOptionsHtml}
             </select>
-            <button type="button" data-collect-id="${tx.id}" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition whitespace-nowrap">
-              ✓ Took It Back
+            <button type="button" data-collect-id="${tx.id}" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition flex items-center space-x-1 shrink-0">
+              <span>✓ Took It Back</span>
             </button>
           </div>
         `;
-        listContainer.appendChild(card);
+        listEl.appendChild(row);
       });
     }
 
@@ -1818,13 +2249,15 @@
       });
 
       if (currentFilter === 'bank') {
-        list = list.filter(tx => tx.paymentMode === 'bank' || tx.type === 'salary' || tx.type === 'cc_payment' || tx.type === 'roommate_repayment' || tx.type === 'roommate_settlement');
+        list = list.filter(tx => tx.paymentMode === 'bank' || tx.type === 'salary' || tx.type === 'investment' || tx.type === 'cc_payment' || tx.type === 'roommate_repayment' || tx.type === 'roommate_settlement');
       } else if (currentFilter === 'card') {
         list = list.filter(tx => tx.paymentMode === 'card' || tx.type === 'cc_payment');
       } else if (currentFilter === 'split') {
         list = list.filter(tx => tx.isSplit || tx.paymentMode === 'roommate' || tx.type === 'roommate_paid' || tx.type === 'roommate_repayment' || tx.type === 'roommate_settlement');
       } else if (currentFilter === 'salary') {
         list = list.filter(tx => tx.type === 'salary');
+      } else if (currentFilter === 'investment') {
+        list = list.filter(tx => tx.type === 'investment');
       }
 
       if (list.length === 0) {
@@ -1852,12 +2285,17 @@
         const isSettlement = tx.type === 'roommate_settlement';
         const isRoommatePaid = tx.paymentMode === 'roommate' || tx.type === 'roommate_paid';
         const isSalary = tx.type === 'salary';
+        const isInvestment = tx.type === 'investment';
         const config = CATEGORY_COLORS[tx.category] || CATEGORY_COLORS['Default'];
 
         let badgeSource = '';
         if (isRepayment) {
           const bankName = bankLookup[tx.bankId] || 'Bank';
           badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Deposited into ${escapeHtml(bankName)}</span>`;
+        } else if (isInvestment) {
+          const bankName = bankLookup[tx.bankId] || 'Bank';
+          const appLabel = tx.upiApp ? ` • ${escapeHtml(tx.upiApp)}` : '';
+          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-violet-50 dark:bg-violet-950/70 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800">📈 ${escapeHtml(bankName)}${appLabel}</span>`;
         } else if (isSettlement) {
           const bankName = bankLookup[tx.bankId] || 'Bank';
           badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">Paid from ${escapeHtml(bankName)}</span>`;
@@ -1927,9 +2365,11 @@
 
         item.innerHTML = `
           <div class="flex items-start space-x-3 min-w-0 pr-3">
-            <div class="w-8 h-8 rounded-lg ${isRepayment ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400' : (isSalary ? 'bg-cyan-50 dark:bg-cyan-950 text-cyan-600 dark:text-cyan-400' : (isRoommatePaid ? 'bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400' : (isCCExpense ? 'bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400' : (isBillPay ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'))))} flex-shrink-0 flex items-center justify-center mt-0.5">
+            <div class="w-8 h-8 rounded-lg ${isRepayment ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400' : (isInvestment ? 'bg-violet-50 dark:bg-violet-950 text-violet-600 dark:text-violet-400' : (isSalary ? 'bg-cyan-50 dark:bg-cyan-950 text-cyan-600 dark:text-cyan-400' : (isRoommatePaid ? 'bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400' : (isCCExpense ? 'bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400' : (isBillPay ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300')))))} flex-shrink-0 flex items-center justify-center mt-0.5">
               ${isRepayment ? `
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              ` : (isInvestment ? `
+                <span class="text-xs">📈</span>
               ` : (isSalary ? `
                 <span class="text-xs">💼</span>
               ` : (isSettlement ? `
@@ -1942,7 +2382,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
               ` : `
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-              `)))))}
+              `))))))}
             </div>
 
             <div class="min-w-0">
@@ -1956,11 +2396,14 @@
             </div>
           </div>
 
-          <div class="flex items-center space-x-2 flex-shrink-0">
-            <span class="text-xs sm:text-sm font-bold ${isRepayment ? 'text-emerald-600 dark:text-emerald-400' : (isSalary && tx.reimbursed ? 'text-emerald-600 dark:text-emerald-400' : (isRoommatePaid ? 'text-amber-600 dark:text-amber-400' : (isCCExpense ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100')))}">
+          <div class="flex items-center space-x-1.5 flex-shrink-0">
+            <span class="text-xs sm:text-sm font-bold mr-1 ${isRepayment ? 'text-emerald-600 dark:text-emerald-400' : (isInvestment ? 'text-violet-600 dark:text-violet-400' : (isSalary && tx.reimbursed ? 'text-emerald-600 dark:text-emerald-400' : (isRoommatePaid ? 'text-amber-600 dark:text-amber-400' : (isCCExpense ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'))))}">
               ${isRepayment ? '+' : '-'}${formatCurrency(tx.amount)}
             </span>
-            <button data-delete-id="${tx.id}" title="Delete expense" class="px-2 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 flex items-center justify-center transition">
+            <button data-edit-id="${tx.id}" title="Edit transaction" class="px-2 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 flex items-center justify-center transition">
+              Edit
+            </button>
+            <button data-delete-id="${tx.id}" title="Delete transaction" class="px-2 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 flex items-center justify-center transition">
               Delete
             </button>
           </div>
@@ -2026,6 +2469,7 @@
 
     function renderAll() {
       renderOverview();
+      renderMutualFundsSection();
       renderCCBillingCycles();
       renderAccountSelectOptions();
       renderReimbursements();
@@ -2057,41 +2501,225 @@
     }
 
     // =========================================================================
-    // TAB SWITCHER: LOG EXPENSE VS SEND SALARY
+    // TAB SWITCHER: LOG EXPENSE VS SEND SALARY VS MUTUAL FUND
     // =========================================================================
     const tabBtnExpense = document.getElementById('tab-btn-expense');
     const tabBtnSalary = document.getElementById('tab-btn-salary');
+    const tabBtnMf = document.getElementById('tab-btn-mf');
     const expenseFormEl = document.getElementById('expense-form');
     const salaryFormEl = document.getElementById('salary-form');
+    const mfFormEl = document.getElementById('mf-form');
 
-    function setCurrentTimeOnSalaryForm() {
+    function setCurrentTimeOnForms() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const timeStr = `${hh}:${mm}`;
+
       const salTimeInput = document.getElementById('sal-time');
-      if (salTimeInput) {
-        const now = new Date();
-        const hh = String(now.getHours()).padStart(2, '0');
-        const mm = String(now.getMinutes()).padStart(2, '0');
-        salTimeInput.value = `${hh}:${mm}`;
+      if (salTimeInput) salTimeInput.value = timeStr;
+      const mfTimeInput = document.getElementById('mf-time');
+      if (mfTimeInput) mfTimeInput.value = timeStr;
+    }
+
+    function activateEntryTab(tabName) {
+      const inactiveClass = 'py-2 px-2 rounded-lg text-[11px] sm:text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex items-center justify-center gap-1 truncate';
+      if (tabBtnExpense) tabBtnExpense.className = inactiveClass;
+      if (tabBtnSalary) tabBtnSalary.className = inactiveClass;
+      if (tabBtnMf) tabBtnMf.className = inactiveClass;
+
+      if (expenseFormEl) expenseFormEl.classList.add('hidden');
+      if (salaryFormEl) salaryFormEl.classList.add('hidden');
+      if (mfFormEl) mfFormEl.classList.add('hidden');
+
+      if (tabName === 'salary') {
+        if (tabBtnSalary) tabBtnSalary.className = 'py-2 px-2 rounded-lg text-[11px] sm:text-xs font-bold bg-cyan-600 text-white shadow-xs transition flex items-center justify-center gap-1 truncate';
+        if (salaryFormEl) salaryFormEl.classList.remove('hidden');
+        setCurrentTimeOnForms();
+      } else if (tabName === 'mf') {
+        if (tabBtnMf) tabBtnMf.className = 'py-2 px-2 rounded-lg text-[11px] sm:text-xs font-bold bg-violet-600 text-white shadow-xs transition flex items-center justify-center gap-1 truncate';
+        if (mfFormEl) mfFormEl.classList.remove('hidden');
+        setCurrentTimeOnForms();
+      } else {
+        if (tabBtnExpense) tabBtnExpense.className = 'py-2 px-2 rounded-lg text-[11px] sm:text-xs font-bold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs transition flex items-center justify-center gap-1 truncate';
+        if (expenseFormEl) expenseFormEl.classList.remove('hidden');
       }
     }
 
-    if (tabBtnExpense && tabBtnSalary) {
-      tabBtnExpense.addEventListener('click', () => {
-        tabBtnExpense.className = 'py-2 px-3 rounded-lg text-xs font-bold bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs transition flex items-center justify-center gap-1.5';
-        tabBtnSalary.className = 'py-2 px-3 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex items-center justify-center gap-1.5';
-        expenseFormEl.classList.remove('hidden');
-        salaryFormEl.classList.add('hidden');
-      });
+    if (tabBtnExpense) tabBtnExpense.addEventListener('click', () => activateEntryTab('expense'));
+    if (tabBtnSalary) tabBtnSalary.addEventListener('click', () => activateEntryTab('salary'));
+    if (tabBtnMf) tabBtnMf.addEventListener('click', () => activateEntryTab('mf'));
 
-      tabBtnSalary.addEventListener('click', () => {
-        tabBtnSalary.className = 'py-2 px-3 rounded-lg text-xs font-bold bg-cyan-600 text-white shadow-xs transition flex items-center justify-center gap-1.5';
-        tabBtnExpense.className = 'py-2 px-3 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex items-center justify-center gap-1.5';
-        salaryFormEl.classList.remove('hidden');
-        expenseFormEl.classList.add('hidden');
-        setCurrentTimeOnSalaryForm();
+    const jumpToMfBtn = document.getElementById('jump-to-mf-tab-btn');
+    if (jumpToMfBtn) {
+      jumpToMfBtn.addEventListener('click', () => {
+        activateEntryTab('mf');
+        const card = document.getElementById('quick-entry-card');
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const nameInput = document.getElementById('mf-name');
+        if (nameInput) setTimeout(() => nameInput.focus(), 200);
       });
     }
 
-    // Salary Reimbursement Checkbox Toggle
+    // Mutual Fund Form Logic (Monthly SIP Schedule vs One-Time Investment)
+    const mfEntryRadios = document.querySelectorAll('input[name="mfEntryType"]');
+    const mfSipDayRow = document.getElementById('mf-sip-day-row');
+    const mfOnetimeDateRow = document.getElementById('mf-onetime-date-row');
+    const mfSubmitBtn = document.getElementById('mf-submit-btn');
+
+    mfEntryRadios.forEach(r => {
+      r.addEventListener('change', () => {
+        const mode = document.querySelector('input[name="mfEntryType"]:checked').value;
+        if (mode === 'lump_sum') {
+          mfSipDayRow.classList.add('hidden');
+          mfOnetimeDateRow.classList.remove('hidden');
+          mfSubmitBtn.innerHTML = '<span>📈 Log Mutual Fund Investment</span>';
+        } else {
+          mfSipDayRow.classList.remove('hidden');
+          mfOnetimeDateRow.classList.add('hidden');
+          mfSubmitBtn.innerHTML = '<span>📈 Save Monthly SIP & Reminder</span>';
+        }
+      });
+    });
+
+    if (mfFormEl) {
+      mfFormEl.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const mode = document.querySelector('input[name="mfEntryType"]:checked').value;
+        const fundName = document.getElementById('mf-name').value.trim();
+        const amount = parseFloat(document.getElementById('mf-amount').value);
+        const bankId = document.getElementById('mf-bank-id').value;
+        const app = document.getElementById('mf-app').value;
+
+        if (!fundName || !amount || amount <= 0) {
+          showToast('Please enter mutual fund name and valid amount', 'error');
+          return;
+        }
+
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        if (mode === 'sip_schedule') {
+          const sipDay = Math.min(31, Math.max(1, parseInt(document.getElementById('mf-sip-day').value, 10) || 5));
+          const alsoDebitNow = document.getElementById('mf-also-debit-now').checked;
+          const newMfId = 'mf_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+
+          recordUndoState(`Added SIP: ${fundName}`);
+          appData.mutualFunds.push({
+            id: newMfId,
+            name: fundName,
+            amount,
+            sipDay,
+            bankId,
+            app
+          });
+
+          if (alsoDebitNow) {
+            appData.transactions.push({
+              id: 'inv_' + Date.now(),
+              type: 'investment',
+              paymentMode: 'bank',
+              mfId: newMfId,
+              bankId,
+              upiApp: app,
+              amount,
+              category: 'Mutual Fund / SIP',
+              description: `SIP: ${fundName}`,
+              date: todayStr,
+              time: document.getElementById('mf-time')?.value || '',
+              createdAt: Date.now()
+            });
+          }
+
+          saveData(appData);
+          renderAll();
+          document.getElementById('mf-name').value = '';
+          document.getElementById('mf-amount').value = '';
+          document.getElementById('mf-also-debit-now').checked = false;
+          showToast(
+            alsoDebitNow
+              ? `Monthly SIP saved & ${formatCurrency(amount)} debited for this month!`
+              : `Monthly SIP reminder saved! ${formatCurrency(amount)} reserved from spendable cash.`,
+            'default',
+            true
+          );
+        } else {
+          const date = document.getElementById('mf-date').value || todayStr;
+          const time = document.getElementById('mf-time').value || '';
+
+          recordUndoState(`Investment: ${fundName}`);
+          appData.transactions.push({
+            id: 'inv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+            type: 'investment',
+            paymentMode: 'bank',
+            bankId,
+            upiApp: app,
+            amount,
+            category: 'Mutual Fund / SIP',
+            description: `MF Investment: ${fundName}`,
+            date,
+            time,
+            createdAt: Date.now()
+          });
+
+          saveData(appData);
+          renderAll();
+          document.getElementById('mf-name').value = '';
+          document.getElementById('mf-amount').value = '';
+          showToast(`Logged ${formatCurrency(amount)} investment in ${fundName}!`, 'default', true);
+        }
+      });
+    }
+
+    // Handle "Mark Debited" and "Remove" clicks on Mutual Fund SIP Cards
+    const mfGridEl = document.getElementById('mf-sip-cards-grid');
+    if (mfGridEl) {
+      mfGridEl.addEventListener('click', (e) => {
+        const debitBtn = e.target.closest('[data-trigger-sip-id]');
+        if (debitBtn) {
+          const mfId = debitBtn.getAttribute('data-trigger-sip-id');
+          const mf = appData.mutualFunds.find(m => m.id === mfId);
+          if (mf) {
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            recordUndoState(`SIP Debited: ${mf.name}`);
+            appData.transactions.push({
+              id: 'inv_' + Date.now(),
+              type: 'investment',
+              paymentMode: 'bank',
+              mfId: mf.id,
+              bankId: mf.bankId,
+              upiApp: mf.app,
+              amount: mf.amount,
+              category: 'Mutual Fund / SIP',
+              description: `SIP Auto-Debit: ${mf.name}`,
+              date: now.toISOString().split('T')[0],
+              time: `${hh}:${mm}`,
+              createdAt: Date.now()
+            });
+            saveData(appData);
+            renderAll();
+            showToast(`Marked ${mf.name} SIP (${formatCurrency(mf.amount)}) as debited from bank!`, 'default', true);
+          }
+          return;
+        }
+
+        const removeBtn = e.target.closest('[data-delete-sip-id]');
+        if (removeBtn) {
+          const mfId = removeBtn.getAttribute('data-delete-sip-id');
+          const target = appData.mutualFunds.find(m => m.id === mfId);
+          if (target) {
+            recordUndoState(`Removed SIP: ${target.name}`);
+            appData.mutualFunds = appData.mutualFunds.filter(m => m.id !== mfId);
+            saveData(appData);
+            renderAll();
+            showToast(`Removed ${target.name} from monthly SIP schedule`, 'default', true);
+          }
+        }
+      });
+    }
+
+    // Reimbursement Checkbox Toggle inside Salary Form
     const salNeedsReimburse = document.getElementById('sal-needs-reimburse');
     const salReimburseBox = document.getElementById('sal-reimburse-box');
     const salReimburseFrom = document.getElementById('sal-reimburse-from');
@@ -2100,7 +2728,7 @@
       salNeedsReimburse.addEventListener('change', () => {
         if (salNeedsReimburse.checked) {
           salReimburseBox.classList.remove('hidden');
-          if (salReimburseFrom) salReimburseFrom.focus();
+          salReimburseFrom.focus();
         } else {
           salReimburseBox.classList.add('hidden');
         }
@@ -2160,7 +2788,7 @@
         document.getElementById('sal-desc').value = '';
         salNeedsReimburse.checked = false;
         salReimburseBox.classList.add('hidden');
-        setCurrentTimeOnSalaryForm();
+        setCurrentTimeOnForms();
 
         showToast(
           needsReimbursement
@@ -2301,6 +2929,7 @@
         const roommateName = document.getElementById('tx-roommate-name').value.trim() || 'Roommate';
         const amount = parseFloat(txAmountInput.value);
         const date = document.getElementById('tx-date').value;
+        const time = document.getElementById('tx-time') ? document.getElementById('tx-time').value : '';
         let category = categorySelect.value;
         const descInput = document.getElementById('tx-desc');
 
@@ -2332,6 +2961,7 @@
             category,
             description,
             date,
+            time,
             createdAt: Date.now()
           });
 
@@ -2367,6 +2997,7 @@
           category,
           description,
           date,
+          time,
           createdAt: Date.now()
         });
 
@@ -2444,7 +3075,15 @@
           return;
         }
 
-        // 4. Delete Transaction
+        // 4. Edit Transaction
+        const editBtn = e.target.closest('[data-edit-id]');
+        if (editBtn) {
+          const id = editBtn.getAttribute('data-edit-id');
+          openEditTxModal(id);
+          return;
+        }
+
+        // 5. Delete Transaction
         const btn = e.target.closest('[data-delete-id]');
         if (!btn) return;
         const id = btn.getAttribute('data-delete-id');
@@ -2454,6 +3093,110 @@
         saveData(appData);
         renderAll();
         showToast('Transaction deleted', 'default', true);
+      });
+    }
+
+    // =========================================================================
+    // EDIT TRANSACTION MODAL LOGIC
+    // =========================================================================
+    const editTxModal = document.getElementById('edit-tx-modal');
+    const editTxForm = document.getElementById('edit-tx-form');
+
+    function openEditTxModal(txId) {
+      const tx = appData.transactions.find(t => t.id === txId);
+      if (!tx || !editTxModal) return;
+
+      renderAccountSelectOptions();
+
+      document.getElementById('edit-tx-id').value = tx.id;
+      document.getElementById('edit-tx-desc').value = tx.description || '';
+      document.getElementById('edit-tx-amount').value = tx.amount || 0;
+      document.getElementById('edit-tx-category').value = tx.category || 'Miscellaneous';
+      document.getElementById('edit-tx-date').value = tx.date || new Date().toISOString().split('T')[0];
+      document.getElementById('edit-tx-time').value = tx.time || '';
+
+      const bankRow = document.getElementById('edit-tx-bank-row');
+      const cardRow = document.getElementById('edit-tx-card-row');
+      const splitRow = document.getElementById('edit-tx-split-row');
+
+      if (tx.paymentMode === 'card' && tx.type !== 'cc_payment') {
+        bankRow.classList.add('hidden');
+        cardRow.classList.remove('hidden');
+        if (tx.cardId) document.getElementById('edit-tx-card-id').value = tx.cardId;
+      } else if (tx.paymentMode === 'roommate' || tx.type === 'roommate_paid') {
+        bankRow.classList.add('hidden');
+        cardRow.classList.add('hidden');
+      } else {
+        bankRow.classList.remove('hidden');
+        cardRow.classList.add('hidden');
+        if (tx.bankId) document.getElementById('edit-tx-bank-id').value = tx.bankId;
+        document.getElementById('edit-tx-upi-app').value = tx.upiApp || '';
+      }
+
+      if (tx.isSplit) {
+        splitRow.classList.remove('hidden');
+        document.getElementById('edit-tx-my-share').value = tx.myShare ?? tx.amount;
+      } else {
+        splitRow.classList.add('hidden');
+      }
+
+      editTxModal.classList.remove('hidden');
+    }
+
+    function closeEditTxModal() {
+      if (editTxModal) editTxModal.classList.add('hidden');
+    }
+
+    const closeEditTxBtn = document.getElementById('close-edit-tx-modal');
+    if (closeEditTxBtn) closeEditTxBtn.addEventListener('click', closeEditTxModal);
+    const cancelEditTxBtn = document.getElementById('cancel-edit-tx-btn');
+    if (cancelEditTxBtn) cancelEditTxBtn.addEventListener('click', closeEditTxModal);
+
+    if (editTxForm) {
+      editTxForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const txId = document.getElementById('edit-tx-id').value;
+        const tx = appData.transactions.find(t => t.id === txId);
+        if (!tx) return;
+
+        const newDesc = document.getElementById('edit-tx-desc').value.trim() || 'Transaction';
+        const newAmount = parseFloat(document.getElementById('edit-tx-amount').value);
+        const newCat = document.getElementById('edit-tx-category').value.trim() || 'Miscellaneous';
+        const newDate = document.getElementById('edit-tx-date').value;
+        const newTime = document.getElementById('edit-tx-time').value;
+
+        if (!newAmount || newAmount <= 0) {
+          showToast('Please enter a valid amount', 'error');
+          return;
+        }
+
+        recordUndoState(`Edited: ${tx.description}`);
+
+        tx.description = newDesc;
+        tx.amount = newAmount;
+        tx.category = newCat;
+        tx.date = newDate;
+        tx.time = newTime;
+
+        if (tx.paymentMode === 'card' && tx.type !== 'cc_payment') {
+          tx.cardId = document.getElementById('edit-tx-card-id').value;
+        } else if (tx.paymentMode !== 'roommate' && tx.type !== 'roommate_paid') {
+          tx.bankId = document.getElementById('edit-tx-bank-id').value;
+          tx.upiApp = document.getElementById('edit-tx-upi-app').value.trim();
+        }
+
+        if (tx.isSplit) {
+          const editedShare = parseFloat(document.getElementById('edit-tx-my-share').value);
+          tx.myShare = !isNaN(editedShare) ? Math.min(newAmount, Math.max(0, editedShare)) : newAmount;
+          tx.owedToMe = +(newAmount - tx.myShare).toFixed(2);
+        } else if (tx.paymentMode === 'roommate' || tx.type === 'roommate_paid') {
+          tx.myShare = newAmount;
+        }
+
+        saveData(appData);
+        renderAll();
+        closeEditTxModal();
+        showToast('Transaction updated!', 'default', true);
       });
     }
 
@@ -2984,6 +3727,7 @@
                 creditCards: Array.isArray(imported.creditCards) && imported.creditCards.length > 0
                   ? imported.creditCards
                   : JSON.parse(JSON.stringify(DEFAULT_STATE.creditCards)),
+                mutualFunds: Array.isArray(imported.mutualFunds) ? imported.mutualFunds : [],
                 passcodeEnabled: Boolean(imported.passcodeEnabled),
                 passcode: imported.passcode ? String(imported.passcode) : '',
                 transactions: imported.transactions
@@ -3072,16 +3816,18 @@
       const today = new Date().toISOString().split('T')[0];
       const txDate = document.getElementById('tx-date');
       const salDate = document.getElementById('sal-date');
+      const mfDate = document.getElementById('mf-date');
       const payDate = document.getElementById('pay-date');
       const recDate = document.getElementById('receive-date');
       const setDate = document.getElementById('settle-date');
 
       if (txDate) txDate.value = today;
       if (salDate) salDate.value = today;
+      if (mfDate) mfDate.value = today;
       if (payDate) payDate.value = today;
       if (recDate) recDate.value = today;
       if (setDate) setDate.value = today;
-      setCurrentTimeOnSalaryForm();
+      setCurrentTimeOnForms();
 
       // Always check passcode status on every reload
       checkAppSecurity();
