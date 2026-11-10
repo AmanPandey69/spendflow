@@ -226,6 +226,28 @@
 
     </div>
 
+    <!-- Credit Card Billing Cycle, Statement & Due Date Reminders Banner -->
+    <div id="cc-billing-section" class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm transition-colors">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm shrink-0">
+            📅
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white leading-tight">Credit Card Billing Cycles & Due Date Reminders</h2>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Track billing start/end dates, statement generation & payment due countdowns</p>
+          </div>
+        </div>
+        <button type="button" id="edit-cc-cycles-btn" class="inline-flex items-center self-start sm:self-auto px-3 py-1.5 text-xs font-semibold rounded-xl text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/70 transition">
+          ⚙️ Edit Cycle & Due Dates
+        </button>
+      </div>
+
+      <div id="cc-billing-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- Populated dynamically via JS for ICICI, Kotak, etc. -->
+      </div>
+    </div>
+
     <!-- Main Working Grid: Entry Form (Left) & Transaction List (Right) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
 
@@ -888,6 +910,9 @@
         <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white text-sm font-semibold rounded-xl transition shadow-sm">
           Unlock
         </button>
+        <p id="lock-default-hint" class="text-[11px] text-slate-500 leading-relaxed">
+          Default PIN on a new browser is <span class="text-slate-300 font-mono font-semibold">1234</span>. You can customize it in Settings ⚙️.
+        </p>
       </form>
     </div>
   </div>
@@ -946,11 +971,11 @@
         { id: 'bank_bob', name: 'Bank of Baroda', initialBalance: 0 }
       ],
       creditCards: [
-        { id: 'cc_icici', name: 'ICICI Credit Card', initialDue: 0 },
-        { id: 'cc_kotak', name: 'Kotak Credit Card', initialDue: 0 }
+        { id: 'cc_icici', name: 'ICICI Credit Card', initialDue: 0, cycleStartDay: 15, cycleEndDay: 14, statementDay: 14, dueDay: 2 },
+        { id: 'cc_kotak', name: 'Kotak Credit Card', initialDue: 0, cycleStartDay: 20, cycleEndDay: 19, statementDay: 19, dueDay: 8 }
       ],
-      passcodeEnabled: false,
-      passcode: '',
+      passcodeEnabled: true,
+      passcode: '1234',
       transactions: []
     };
 
@@ -964,15 +989,28 @@
           ? parsed.bankAccounts
           : JSON.parse(JSON.stringify(DEFAULT_STATE.bankAccounts));
 
-        const cards = Array.isArray(parsed.creditCards) && parsed.creditCards.length > 0
+        const cards = (Array.isArray(parsed.creditCards) && parsed.creditCards.length > 0
           ? parsed.creditCards
-          : JSON.parse(JSON.stringify(DEFAULT_STATE.creditCards));
+          : JSON.parse(JSON.stringify(DEFAULT_STATE.creditCards))
+        ).map(c => ({
+          id: c.id || ('cc_' + Math.random().toString(36).substring(2, 7)),
+          name: c.name || 'Credit Card',
+          initialDue: Number(c.initialDue) || 0,
+          cycleStartDay: Number(c.cycleStartDay) || 1,
+          cycleEndDay: Number(c.cycleEndDay) || 30,
+          statementDay: Number(c.statementDay) || Number(c.cycleEndDay) || 30,
+          dueDay: Number(c.dueDay) || 15
+        }));
+
+        // Default passcodeEnabled to true so fresh loads are always protected
+        const hasExplicitToggle = typeof parsed.passcodeEnabled === 'boolean';
+        const savedPasscode = parsed.passcode ? String(parsed.passcode) : '1234';
 
         return {
           bankAccounts: banks,
           creditCards: cards,
-          passcodeEnabled: Boolean(parsed.passcodeEnabled),
-          passcode: parsed.passcode ? String(parsed.passcode) : '',
+          passcodeEnabled: hasExplicitToggle ? (parsed.passcode ? parsed.passcodeEnabled : true) : true,
+          passcode: savedPasscode,
           transactions: Array.isArray(parsed.transactions) ? parsed.transactions : []
         };
       } catch (err) {
@@ -1165,6 +1203,10 @@
           id: c.id,
           name: c.name,
           initialDue: Number(c.initialDue) || 0,
+          cycleStartDay: Number(c.cycleStartDay) || 1,
+          cycleEndDay: Number(c.cycleEndDay) || 30,
+          statementDay: Number(c.statementDay) || 30,
+          dueDay: Number(c.dueDay) || 15,
           spends: 0,
           payments: 0,
           currentOutstanding: Number(c.initialDue) || 0
@@ -1288,6 +1330,15 @@
       const lockModal = document.getElementById('lock-screen-modal');
       if (!lockModal) return;
 
+      const hintEl = document.getElementById('lock-default-hint');
+      if (hintEl) {
+        if (appData.passcode === '1234') {
+          hintEl.classList.remove('hidden');
+        } else {
+          hintEl.classList.add('hidden');
+        }
+      }
+
       if (appData.passcodeEnabled && appData.passcode) {
         if (!isAppUnlocked) {
           lockModal.classList.remove('hidden');
@@ -1311,7 +1362,8 @@
       lockForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const entered = document.getElementById('lock-screen-pin').value;
-        if (entered === appData.passcode) {
+        const activePin = appData.passcode || '1234';
+        if (entered === activePin) {
           isAppUnlocked = true;
           document.getElementById('lock-screen-modal').classList.add('hidden');
           showToast('App unlocked');
@@ -1325,13 +1377,15 @@
     const manualLockBtn = document.getElementById('manual-lock-btn');
     if (manualLockBtn) {
       manualLockBtn.addEventListener('click', () => {
-        if (appData.passcodeEnabled && appData.passcode) {
-          isAppUnlocked = false;
-          checkAppSecurity();
-        } else {
-          // Open Settings and enable Passcode toggle so user can set a PIN right away
-          openSettingsModal(true);
+        // Always lock the app immediately when the Lock button is clicked
+        if (!appData.passcode) {
+          appData.passcode = '1234';
         }
+        appData.passcodeEnabled = true;
+        saveData(appData);
+        isAppUnlocked = false;
+        checkAppSecurity();
+        showToast('SpendFlow locked');
       });
     }
 
@@ -1445,6 +1499,181 @@
 
       const settleOwedEl = document.getElementById('modal-settle-you-owe-current');
       if (settleOwedEl) settleOwedEl.textContent = formatCurrency(ledger.splitIOweRoommates);
+    }
+
+    /**
+     * Credit Card Billing Cycle, Statement Date & Due Date Calculator
+     */
+    function makeClampedDate(year, month, day) {
+      const maxDays = new Date(year, month + 1, 0).getDate();
+      const safeDay = Math.max(1, Math.min(Number(day) || 1, maxDays));
+      return new Date(year, month, safeDay);
+    }
+
+    function formatShortDate(dateObj) {
+      return dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    }
+
+    function getOrdinalSuffix(n) {
+      const num = Number(n) || 1;
+      const v = num % 100;
+      if (v >= 11 && v <= 13) return num + 'th';
+      switch (num % 10) {
+        case 1: return num + 'st';
+        case 2: return num + 'nd';
+        case 3: return num + 'rd';
+        default: return num + 'th';
+      }
+    }
+
+    function computeCardBillingCycle(card, currentOutstanding) {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startDay = Math.min(31, Math.max(1, Number(card.cycleStartDay) || 15));
+      const endDay = Math.min(31, Math.max(1, Number(card.cycleEndDay) || 14));
+      const stmtDay = Math.min(31, Math.max(1, Number(card.statementDay) || endDay));
+      const dueDay = Math.min(31, Math.max(1, Number(card.dueDay) || 2));
+
+      // 1. Determine current active cycle start date
+      let cycleStart = makeClampedDate(today.getFullYear(), today.getMonth(), startDay);
+      if (today < cycleStart) {
+        cycleStart = makeClampedDate(today.getFullYear(), today.getMonth() - 1, startDay);
+      }
+
+      // 2. Determine current active cycle end date
+      let cycleEnd = makeClampedDate(cycleStart.getFullYear(), cycleStart.getMonth(), endDay);
+      if (cycleEnd <= cycleStart) {
+        cycleEnd = makeClampedDate(cycleStart.getFullYear(), cycleStart.getMonth() + 1, endDay);
+      }
+
+      // 3. Determine next Statement Date
+      let nextStatement = makeClampedDate(today.getFullYear(), today.getMonth(), stmtDay);
+      if (nextStatement < today) {
+        nextStatement = makeClampedDate(today.getFullYear(), today.getMonth() + 1, stmtDay);
+      }
+      const daysToStatement = Math.round((nextStatement - today) / 86400000);
+
+      // 4. Determine Payment Due Date & urgency
+      let thisMonthDue = makeClampedDate(today.getFullYear(), today.getMonth(), dueDay);
+      let nextDue = thisMonthDue;
+      let daysToDue = Math.round((nextDue - today) / 86400000);
+
+      // If this month's due date passed more than 5 days ago (or balance is 0), point to next month's due date
+      if (daysToDue < -5 || (daysToDue < 0 && currentOutstanding <= 0)) {
+        nextDue = makeClampedDate(today.getFullYear(), today.getMonth() + 1, dueDay);
+        daysToDue = Math.round((nextDue - today) / 86400000);
+      }
+
+      // 5. Calculate spends logged inside current active cycle
+      let currentCycleSpends = 0;
+      appData.transactions.forEach(tx => {
+        if (tx.paymentMode === 'card' && tx.type !== 'cc_payment' && tx.cardId === card.id && tx.date) {
+          const parts = tx.date.split('-');
+          if (parts.length === 3) {
+            const txDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            if (txDate >= cycleStart && txDate <= cycleEnd) {
+              currentCycleSpends += Number(tx.amount) || 0;
+            }
+          }
+        }
+      });
+
+      return {
+        startDay,
+        endDay,
+        stmtDay,
+        dueDay,
+        cycleStart,
+        cycleEnd,
+        nextStatement,
+        daysToStatement,
+        nextDue,
+        daysToDue,
+        currentCycleSpends
+      };
+    }
+
+    function renderCCBillingCycles() {
+      const grid = document.getElementById('cc-billing-cards-grid');
+      if (!grid) return;
+
+      const ledger = calculateLedger();
+      grid.innerHTML = '';
+
+      appData.creditCards.forEach(card => {
+        const stat = ledger.cardMap[card.id];
+        const dueAmount = stat ? stat.currentOutstanding : 0;
+        const info = computeCardBillingCycle(card, dueAmount);
+
+        let statusBadgeHtml = '';
+        let borderClass = 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50';
+
+        if (dueAmount <= 0) {
+          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">✓ No Due • Next Due ${formatShortDate(info.nextDue)}</span>`;
+        } else if (info.daysToDue < 0) {
+          borderClass = 'border-rose-400 dark:border-rose-700 bg-rose-50/70 dark:bg-rose-950/40';
+          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-600 text-white animate-pulse">⚠️ Overdue by ${Math.abs(info.daysToDue)}d (${formatShortDate(info.nextDue)})</span>`;
+        } else if (info.daysToDue === 0) {
+          borderClass = 'border-rose-400 dark:border-rose-700 bg-rose-50/70 dark:bg-rose-950/40';
+          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-600 text-white animate-pulse">🚨 Due Today! (${formatShortDate(info.nextDue)})</span>`;
+        } else if (info.daysToDue <= 5) {
+          borderClass = 'border-rose-300 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/30';
+          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 dark:bg-rose-900/80 text-rose-700 dark:text-rose-200 border border-rose-300 dark:border-rose-700">⏰ Due in ${info.daysToDue} day${info.daysToDue === 1 ? '' : 's'} (${formatShortDate(info.nextDue)})</span>`;
+        } else if (info.daysToDue <= 10) {
+          borderClass = 'border-amber-300 dark:border-amber-800 bg-amber-50/40 dark:bg-amber-950/20';
+          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">🔔 Due in ${info.daysToDue} days (${formatShortDate(info.nextDue)})</span>`;
+        } else {
+          statusBadgeHtml = `<span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-200">Due ${formatShortDate(info.nextDue)} (in ${info.daysToDue}d)</span>`;
+        }
+
+        const stmtText = info.daysToStatement === 0
+          ? 'Today!'
+          : `in ${info.daysToStatement}d (${formatShortDate(info.nextStatement)})`;
+
+        const cardEl = document.createElement('div');
+        cardEl.className = `p-3.5 rounded-xl border ${borderClass} flex flex-col justify-between gap-3 transition-all`;
+        cardEl.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex items-center space-x-2">
+                <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">${escapeHtml(card.name)}</h3>
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Active Cycle: <span class="font-semibold text-slate-700 dark:text-slate-300">${formatShortDate(info.cycleStart)} → ${formatShortDate(info.cycleEnd)}</span>
+                <span class="text-[10px] text-slate-400">(${getOrdinalSuffix(info.startDay)} to ${getOrdinalSuffix(info.endDay)})</span>
+              </p>
+            </div>
+            ${statusBadgeHtml}
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px]">
+            <div>
+              <span class="block text-[10px] text-slate-400 dark:text-slate-500">Total Outstanding</span>
+              <span class="font-bold text-xs ${dueAmount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-800 dark:text-slate-200'}">${formatCurrency(dueAmount)}</span>
+            </div>
+            <div>
+              <span class="block text-[10px] text-slate-400 dark:text-slate-500">Statement Date</span>
+              <span class="font-semibold text-slate-700 dark:text-slate-300">${getOrdinalSuffix(info.stmtDay)} <span class="text-[10px] text-indigo-600 dark:text-indigo-400">(${stmtText})</span></span>
+            </div>
+            <div class="text-right">
+              <span class="block text-[10px] text-slate-400 dark:text-slate-500">Payment Due Day</span>
+              <span class="font-semibold text-slate-700 dark:text-slate-300">${getOrdinalSuffix(info.dueDay)} of month</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">
+              Spends in current cycle: <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(info.currentCycleSpends)}</strong>
+            </span>
+            ${dueAmount > 0 ? `
+              <button type="button" data-quick-pay-card="${card.id}" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-xs transition">
+                Pay Bill →
+              </button>
+            ` : ''}
+          </div>
+        `;
+        grid.appendChild(cardEl);
+      });
     }
 
     /**
@@ -1797,10 +2026,34 @@
 
     function renderAll() {
       renderOverview();
+      renderCCBillingCycles();
       renderAccountSelectOptions();
       renderReimbursements();
       renderCategoryBreakdown();
       renderTransactions();
+    }
+
+    // Quick "Edit Cycle & Due Dates" and "Pay Bill" handlers from CC Billing Banner
+    const editCcCyclesBtn = document.getElementById('edit-cc-cycles-btn');
+    if (editCcCyclesBtn) {
+      editCcCyclesBtn.addEventListener('click', () => {
+        openSettingsModal(false);
+      });
+    }
+
+    const ccBillingGrid = document.getElementById('cc-billing-cards-grid');
+    if (ccBillingGrid) {
+      ccBillingGrid.addEventListener('click', (e) => {
+        const payBtn = e.target.closest('[data-quick-pay-card]');
+        if (!payBtn) return;
+        const cardId = payBtn.getAttribute('data-quick-pay-card');
+        openPayModal();
+        const selectEl = document.getElementById('modal-pay-card-select');
+        if (selectEl && cardId) {
+          selectEl.value = cardId;
+          selectEl.dispatchEvent(new Event('change'));
+        }
+      });
     }
 
     // =========================================================================
@@ -2267,20 +2520,41 @@
       modalCardsContainer.innerHTML = '';
       appData.creditCards.forEach((c, index) => {
         const row = document.createElement('div');
-        row.className = 'grid grid-cols-12 gap-2 items-center bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700';
+        row.className = 'space-y-2.5 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700';
         row.innerHTML = `
-          <div class="col-span-6">
-            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">Card Name</label>
-            <input type="text" data-card-idx="${index}" data-card-field="name" value="${escapeHtml(c.name)}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-slate-800 dark:text-white">
+          <div class="grid grid-cols-12 gap-2 items-center">
+            <div class="col-span-6">
+              <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">Card Name</label>
+              <input type="text" data-card-idx="${index}" data-card-field="name" value="${escapeHtml(c.name)}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-slate-800 dark:text-white">
+            </div>
+            <div class="col-span-5">
+              <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">Starting Due (₹)</label>
+              <input type="number" step="any" min="0" data-card-idx="${index}" data-card-field="initialDue" value="${c.initialDue}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-slate-800 dark:text-white">
+            </div>
+            <div class="col-span-1 pt-3.5 text-center">
+              ${appData.creditCards.length > 1 ? `
+                <button type="button" data-remove-card-idx="${index}" class="text-slate-400 hover:text-rose-600 text-sm font-bold">✕</button>
+              ` : ''}
+            </div>
           </div>
-          <div class="col-span-5">
-            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">Starting Due (₹)</label>
-            <input type="number" step="any" min="0" data-card-idx="${index}" data-card-field="initialDue" value="${c.initialDue}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-slate-800 dark:text-white">
-          </div>
-          <div class="col-span-1 pt-3.5 text-center">
-            ${appData.creditCards.length > 1 ? `
-              <button type="button" data-remove-card-idx="${index}" class="text-slate-400 hover:text-rose-600 text-sm font-bold">✕</button>
-            ` : ''}
+
+          <div class="grid grid-cols-4 gap-2 pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
+            <div>
+              <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium" title="Day of month billing cycle starts">Cycle Start Day</label>
+              <input type="number" min="1" max="31" placeholder="15" data-card-idx="${index}" data-card-field="cycleStartDay" value="${c.cycleStartDay || 15}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-slate-800 dark:text-white">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium" title="Day of month billing cycle ends">Cycle End Day</label>
+              <input type="number" min="1" max="31" placeholder="14" data-card-idx="${index}" data-card-field="cycleEndDay" value="${c.cycleEndDay || 14}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-slate-800 dark:text-white">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium" title="Day of month statement is generated">Statement Day</label>
+              <input type="number" min="1" max="31" placeholder="14" data-card-idx="${index}" data-card-field="statementDay" value="${c.statementDay || 14}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-slate-800 dark:text-white">
+            </div>
+            <div>
+              <label class="block text-[10px] text-rose-600 dark:text-rose-400 font-semibold" title="Day of month bill payment is due">Due Date Day</label>
+              <input type="number" min="1" max="31" placeholder="2" data-card-idx="${index}" data-card-field="dueDay" value="${c.dueDay || 2}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 rounded-lg font-bold text-rose-600 dark:text-rose-400">
+            </div>
           </div>
         `;
         modalCardsContainer.appendChild(row);
@@ -2342,7 +2616,11 @@
         appData.creditCards.push({
           id: 'cc_' + Date.now(),
           name: 'New Credit Card',
-          initialDue: 0
+          initialDue: 0,
+          cycleStartDay: 1,
+          cycleEndDay: 30,
+          statementDay: 30,
+          dueDay: 15
         });
         renderModalCardRows();
       });
@@ -2378,6 +2656,11 @@
       if (modalCardsContainer) {
         const nameInputs = modalCardsContainer.querySelectorAll('[data-card-field="name"]');
         const dueInputs = modalCardsContainer.querySelectorAll('[data-card-field="initialDue"]');
+        const startInputs = modalCardsContainer.querySelectorAll('[data-card-field="cycleStartDay"]');
+        const endInputs = modalCardsContainer.querySelectorAll('[data-card-field="cycleEndDay"]');
+        const stmtInputs = modalCardsContainer.querySelectorAll('[data-card-field="statementDay"]');
+        const dueDayInputs = modalCardsContainer.querySelectorAll('[data-card-field="dueDay"]');
+
         nameInputs.forEach(inp => {
           const i = parseInt(inp.getAttribute('data-card-idx'), 10);
           if (appData.creditCards[i]) appData.creditCards[i].name = inp.value.trim() || 'Card';
@@ -2385,6 +2668,22 @@
         dueInputs.forEach(inp => {
           const i = parseInt(inp.getAttribute('data-card-idx'), 10);
           if (appData.creditCards[i]) appData.creditCards[i].initialDue = parseFloat(inp.value) || 0;
+        });
+        startInputs.forEach(inp => {
+          const i = parseInt(inp.getAttribute('data-card-idx'), 10);
+          if (appData.creditCards[i]) appData.creditCards[i].cycleStartDay = Math.min(31, Math.max(1, parseInt(inp.value, 10) || 1));
+        });
+        endInputs.forEach(inp => {
+          const i = parseInt(inp.getAttribute('data-card-idx'), 10);
+          if (appData.creditCards[i]) appData.creditCards[i].cycleEndDay = Math.min(31, Math.max(1, parseInt(inp.value, 10) || 30));
+        });
+        stmtInputs.forEach(inp => {
+          const i = parseInt(inp.getAttribute('data-card-idx'), 10);
+          if (appData.creditCards[i]) appData.creditCards[i].statementDay = Math.min(31, Math.max(1, parseInt(inp.value, 10) || 30));
+        });
+        dueDayInputs.forEach(inp => {
+          const i = parseInt(inp.getAttribute('data-card-idx'), 10);
+          if (appData.creditCards[i]) appData.creditCards[i].dueDay = Math.min(31, Math.max(1, parseInt(inp.value, 10) || 15));
         });
       }
     }
