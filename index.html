@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SpendFlow — Personal Spend & Debt Tracker</title>
+  <title>SpendFlow — Personal Expense, Bank, CC & Splitwise Tracker</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Inter -->
@@ -11,22 +11,32 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#f8fafc',
-              100: '#f1f5f9',
-              500: '#0f172a',
-              600: '#020617',
+    // Initialize dark mode before render to prevent flash
+    if (localStorage.getItem('spendflow_theme') === 'dark' || (!localStorage.getItem('spendflow_theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    if (typeof tailwind !== 'undefined') {
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                50: '#f8fafc',
+                100: '#f1f5f9',
+                500: '#0f172a',
+                600: '#020617',
+              }
             }
           }
         }
-      }
+      };
     }
   </script>
   <style>
@@ -36,70 +46,83 @@
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #f1f5f9;
+      background: transparent;
     }
     ::-webkit-scrollbar-thumb {
       background: #cbd5e1;
       border-radius: 9999px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #334155;
     }
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-indigo-100 selection:text-indigo-900">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-indigo-100 selection:text-indigo-900 transition-colors duration-200">
 
   <!-- Header Bar -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-bold shadow-sm">
+  <header class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 transition-colors">
+    <div class="max-w-6xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2">
+      <div class="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-slate-900 dark:bg-indigo-600 flex items-center justify-center text-white font-bold shadow-sm shrink-0">
           ₹
         </div>
-        <div>
-          <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 leading-tight">SpendFlow</h1>
-          <p class="text-xs text-slate-500 hidden sm:block">Bank, Multi-Card & Roommate Splitwise Ledger</p>
+        <div class="truncate">
+          <h1 class="text-sm sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight truncate">SpendFlow</h1>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block truncate">Bank, CC & Roommate Splitwise Ledger</p>
         </div>
       </div>
 
-      <div class="flex items-center space-x-2 sm:space-x-2.5">
+      <div class="flex items-center space-x-1.5 sm:space-x-2">
+        <!-- Dark Mode Toggle Button -->
+        <button id="theme-toggle-btn" type="button" title="Toggle Dark/Light Mode" class="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-100 dark:bg-slate-800 rounded-xl transition border border-slate-200 dark:border-slate-700">
+          <svg id="theme-icon-sun" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg id="theme-icon-moon" class="w-4 h-4 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+
         <!-- Receive Splitwise Repayment -->
-        <button id="open-receive-modal-btn" class="inline-flex items-center px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-sm">
-          <svg class="w-4 h-4 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button id="open-receive-modal-btn" class="inline-flex items-center px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold rounded-xl text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/70 transition-colors shadow-xs">
+          <svg class="w-3.5 h-3.5 sm:mr-1 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
           <span class="hidden sm:inline">Receive Split</span>
-          <span class="sm:hidden">Receive</span>
+          <span class="sm:hidden text-[11px]">Receive</span>
         </button>
 
         <!-- Settle Roommate Debt Button -->
-        <button id="open-settle-modal-btn" class="inline-flex items-center px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-sm">
-          <svg class="w-4 h-4 mr-1 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button id="open-settle-modal-btn" class="inline-flex items-center px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold rounded-xl text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/70 transition-colors shadow-xs">
+          <svg class="w-3.5 h-3.5 sm:mr-1 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
           <span class="hidden sm:inline">Settle Roommate</span>
-          <span class="sm:hidden">Settle</span>
+          <span class="sm:hidden text-[11px]">Settle</span>
         </button>
 
         <!-- Pay CC Bill Button -->
-        <button id="open-pay-modal-btn" class="inline-flex items-center px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-sm">
-          <svg class="w-4 h-4 mr-1 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button id="open-pay-modal-btn" class="inline-flex items-center px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold rounded-xl text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/70 transition-colors shadow-xs">
+          <svg class="w-3.5 h-3.5 sm:mr-1 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
           </svg>
-          Pay CC Bill
+          <span class="hidden sm:inline">Pay CC</span>
+          <span class="sm:hidden text-[11px]">CC</span>
         </button>
 
-        <!-- Balance & Cards Setup Button -->
-        <button id="open-settings-modal-btn" class="inline-flex items-center px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 transition-colors shadow-sm">
-          <svg class="w-4 h-4 sm:mr-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Settings Modal Button -->
+        <button id="open-settings-modal-btn" title="Settings & Passcode" class="inline-flex items-center p-2 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition shadow-xs">
+          <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <span class="hidden sm:inline">Settings</span>
         </button>
 
-        <!-- Lock App Button (Visible if Passcode Enabled) -->
-        <button id="manual-lock-btn" title="Lock App" class="hidden items-center p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+        <!-- Lock App Button (Always visible: locks if PIN set, or opens PIN setup if not set) -->
+        <button id="manual-lock-btn" title="Lock App / Set PIN" class="inline-flex items-center p-2 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 rounded-xl transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
         </button>
       </div>
@@ -107,51 +130,53 @@
   </header>
 
   <!-- Main Content Container -->
-  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full space-y-6">
+  <main class="max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-6 flex-1 w-full space-y-5 sm:space-y-6">
 
     <!-- Overview Metric Cards (4 Cards) -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       
       <!-- 1. Current Bank Balance Left -->
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
+      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Bank Balance</span>
-          <span class="w-6 h-6 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Total Bank Balance</span>
+          <span class="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </span>
         </div>
-        <div class="mt-2.5">
-          <div id="stat-current-balance" class="text-lg sm:text-2xl font-bold text-emerald-600 tracking-tight">₹0</div>
-          <p id="stat-start-balance-note" class="text-[11px] text-slate-400 mt-0.5 truncate">Starting: ₹0</p>
+        <div class="mt-2 sm:mt-2.5">
+          <div id="stat-current-balance" class="text-lg sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">₹0</div>
+          <div id="stat-bank-breakdown" class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap gap-1">
+            <!-- Dynamic pills for Kotak, ICICI, Bank of Baroda -->
+          </div>
         </div>
         <div class="absolute bottom-0 left-0 right-0 h-1 bg-emerald-500"></div>
       </div>
 
       <!-- 2. Your Real Spends (Net after splits) -->
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
+      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Your Real Spends</span>
-          <span class="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Your Real Spends</span>
+          <span class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
           </span>
         </div>
-        <div class="mt-2.5">
-          <div id="stat-total-spent" class="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight">₹0</div>
-          <p id="stat-gross-outflow-note" class="text-[11px] text-slate-400 mt-0.5 truncate">Total paid upfront: ₹0</p>
+        <div class="mt-2 sm:mt-2.5">
+          <div id="stat-total-spent" class="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">₹0</div>
+          <p id="stat-gross-outflow-note" class="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">Total paid upfront: ₹0</p>
         </div>
       </div>
 
       <!-- 3. Credit Cards Outstanding (ICICI + Kotak) -->
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
+      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold uppercase tracking-wider text-rose-600">CC Outstanding</span>
-          <span class="w-6 h-6 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600">
+          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">CC Outstanding</span>
+          <span class="w-6 h-6 rounded-lg bg-rose-50 dark:bg-rose-950/80 flex items-center justify-center text-rose-600 dark:text-rose-400">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
           </span>
         </div>
-        <div class="mt-2.5">
-          <div id="stat-cc-due" class="text-lg sm:text-2xl font-bold text-rose-600 tracking-tight">₹0</div>
-          <div id="stat-cc-breakdown" class="text-[10px] text-slate-500 mt-1 flex flex-wrap gap-1">
+        <div class="mt-2 sm:mt-2.5">
+          <div id="stat-cc-due" class="text-lg sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tracking-tight">₹0</div>
+          <div id="stat-cc-breakdown" class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap gap-1">
             <!-- Dynamic pills for ICICI & Kotak -->
           </div>
         </div>
@@ -159,18 +184,18 @@
       </div>
 
       <!-- 4. Splitwise & Roommates Ledger -->
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
+      <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden transition-colors">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600">Splitwise Ledger</span>
-          <span class="w-6 h-6 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xs">
+          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Splitwise Ledger</span>
+          <span class="w-6 h-6 rounded-lg bg-indigo-50 dark:bg-indigo-950/80 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs">
             👥
           </span>
         </div>
-        <div class="mt-2.5">
-          <div id="stat-split-net" class="text-lg sm:text-2xl font-bold text-indigo-600 tracking-tight">₹0</div>
+        <div class="mt-2 sm:mt-2.5">
+          <div id="stat-split-net" class="text-lg sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">₹0</div>
           <div class="text-[10px] mt-1 flex flex-wrap gap-1.5">
-            <span id="stat-owed-to-me-pill" class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium">They owe: ₹0</span>
-            <span id="stat-you-owe-pill" class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-medium">You owe: ₹0</span>
+            <span id="stat-owed-to-me-pill" class="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-medium border border-emerald-100 dark:border-emerald-800/60">They owe: ₹0</span>
+            <span id="stat-you-owe-pill" class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-medium border border-amber-100 dark:border-amber-800/60">You owe: ₹0</span>
           </div>
         </div>
         <div class="absolute bottom-0 left-0 right-0 h-1 bg-indigo-500"></div>
@@ -179,109 +204,131 @@
     </div>
 
     <!-- Main Working Grid: Entry Form (Left) & Transaction List (Right) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
 
       <!-- LEFT COLUMN: Quick Entry & Category Breakdown (5 Cols on large) -->
-      <div class="lg:col-span-5 space-y-6">
+      <div class="lg:col-span-5 space-y-5 sm:space-y-6">
 
         <!-- Quick Transaction Form -->
-        <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-          <h2 class="text-base font-semibold text-slate-900 mb-4 flex items-center">
-            <span class="w-2 h-2 rounded-full bg-indigo-600 mr-2"></span>
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm transition-colors">
+          <h2 class="text-sm sm:text-base font-semibold text-slate-900 dark:text-white mb-3.5 flex items-center">
+            <span class="w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-400 mr-2"></span>
             Log New Expense
           </h2>
 
-          <form id="expense-form" class="space-y-4">
+          <form id="expense-form" class="space-y-3.5 sm:space-y-4">
             
             <!-- Payment Source Switcher (Bank vs Card vs Roommate Paid) -->
             <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1.5">Who Paid / Payment Method</label>
-              <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl text-[11px] font-semibold text-center">
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Who Paid / Payment Method</label>
+              <div class="grid grid-cols-3 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-[11px] font-semibold text-center">
                 <label class="cursor-pointer">
                   <input type="radio" name="paymentMode" value="bank" checked class="peer sr-only">
-                  <div class="py-2 px-1 rounded-lg peer-checked:bg-white peer-checked:text-indigo-900 peer-checked:shadow-xs text-slate-600 transition-all flex flex-col sm:flex-row items-center justify-center gap-1 truncate">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                  <div class="py-2 px-1 rounded-lg peer-checked:bg-white dark:peer-checked:bg-slate-700 peer-checked:text-indigo-900 dark:peer-checked:text-white peer-checked:shadow-xs text-slate-600 dark:text-slate-400 transition-all flex flex-col sm:flex-row items-center justify-center gap-1 truncate">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     <span>Bank / UPI</span>
                   </div>
                 </label>
                 <label class="cursor-pointer">
                   <input type="radio" name="paymentMode" value="card" class="peer sr-only">
-                  <div class="py-2 px-1 rounded-lg peer-checked:bg-rose-500 peer-checked:text-white peer-checked:shadow-xs text-slate-600 transition-all flex flex-col sm:flex-row items-center justify-center gap-1 truncate">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                  <div class="py-2 px-1 rounded-lg peer-checked:bg-rose-500 peer-checked:text-white peer-checked:shadow-xs text-slate-600 dark:text-slate-400 transition-all flex flex-col sm:flex-row items-center justify-center gap-1 truncate">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                     <span>Credit Card</span>
                   </div>
                 </label>
                 <label class="cursor-pointer">
                   <input type="radio" name="paymentMode" value="roommate" class="peer sr-only">
-                  <div class="py-2 px-1 rounded-lg peer-checked:bg-amber-500 peer-checked:text-white peer-checked:shadow-xs text-slate-600 transition-all flex flex-col sm:flex-row items-center justify-center gap-1 truncate">
-                    <span>👥 Roommate Paid</span>
+                  <div class="py-2 px-1 rounded-lg peer-checked:bg-amber-500 peer-checked:text-white peer-checked:shadow-xs text-slate-600 dark:text-slate-400 transition-all flex flex-col sm:flex-row items-center justify-center gap-1 truncate">
+                    <span>👥 Roommate</span>
                   </div>
                 </label>
+              </div>
+            </div>
+
+            <!-- Bank Account & UPI App Selector (Active when Bank/UPI is selected) -->
+            <div id="bank-selection-row" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+              <div>
+                <label for="tx-bank-id" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">From Bank Account</label>
+                <select id="tx-bank-id" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 transition-colors font-medium">
+                  <!-- Populated via JS: Kotak, ICICI, BoB -->
+                </select>
+              </div>
+              <div>
+                <label for="tx-upi-app" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Payment / UPI App</label>
+                <select id="tx-upi-app" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 transition-colors font-medium">
+                  <option value="GPay">Google Pay (GPay)</option>
+                  <option value="PhonePe">PhonePe</option>
+                  <option value="Paytm">Paytm</option>
+                  <option value="CRED UPI">CRED UPI</option>
+                  <option value="BHIM UPI">BHIM UPI</option>
+                  <option value="NetBanking">NetBanking / Debit Card</option>
+                  <option value="UPI">Other UPI</option>
+                </select>
               </div>
             </div>
 
             <!-- Card Selector (Conditional when CC is selected) -->
             <div id="card-selection-row" class="hidden">
-              <label for="tx-card-id" class="block text-xs font-medium text-rose-700 mb-1">Select Credit Card</label>
-              <select id="tx-card-id" class="w-full px-3 py-2 text-sm bg-rose-50/50 border border-rose-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-600 text-slate-800 transition-colors font-medium">
+              <label for="tx-card-id" class="block text-xs font-medium text-rose-700 dark:text-rose-400 mb-1">Select Credit Card</label>
+              <select id="tx-card-id" class="w-full px-3 py-2 text-sm bg-rose-50/50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-600 text-slate-800 dark:text-slate-100 transition-colors font-medium">
                 <!-- Injected via JS -->
               </select>
             </div>
 
             <!-- Roommate Paid Information (Conditional when Roommate Paid is selected) -->
-            <div id="roommate-payer-row" class="hidden bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 space-y-2">
-              <div class="flex items-center space-x-1.5 text-xs font-semibold text-amber-900">
+            <div id="roommate-payer-row" class="hidden bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 rounded-xl p-3 space-y-2">
+              <div class="flex items-center space-x-1.5 text-xs font-semibold text-amber-900 dark:text-amber-200">
                 <span>ℹ️ Roommate Paid for You</span>
               </div>
-              <p class="text-[11px] text-amber-800 leading-tight">
-                Your bank balance won't change today, but your share will be counted in your spends and added to what you owe your roommate.
+              <p class="text-[11px] text-amber-800 dark:text-amber-300 leading-tight">
+                Your bank balance won't change today, but your share will count in your spends and be added to what you owe your roommate.
               </p>
               <div>
-                <label for="tx-roommate-name" class="block text-[11px] font-medium text-amber-900 mb-1">Who paid the bill?</label>
-                <input type="text" id="tx-roommate-name" placeholder="e.g. Rahul, Aman" class="w-full px-2.5 py-1.5 text-xs bg-white border border-amber-200 rounded-lg text-slate-800">
+                <label for="tx-roommate-name" class="block text-[11px] font-medium text-amber-900 dark:text-amber-200 mb-1">Who paid the bill?</label>
+                <input type="text" id="tx-roommate-name" placeholder="e.g. Rahul, Aman" class="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700 rounded-lg text-slate-800 dark:text-slate-100">
               </div>
             </div>
 
             <!-- Amount & Date -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
               <div>
-                <label for="tx-amount" id="tx-amount-label" class="block text-xs font-medium text-slate-600 mb-1">Total Bill Paid (₹) *</label>
+                <label for="tx-amount" id="tx-amount-label" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Total Bill Paid (₹) *</label>
                 <div class="relative">
-                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-medium">₹</span>
-                  <input type="number" id="tx-amount" step="any" min="0.01" required placeholder="1000" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900 transition-colors">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 dark:text-slate-500 font-medium">₹</span>
+                  <input type="number" id="tx-amount" step="any" min="0.01" required placeholder="1000" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900 dark:text-white transition-colors">
                 </div>
               </div>
               <div>
-                <label for="tx-date" class="block text-xs font-medium text-slate-600 mb-1">Date *</label>
-                <input type="date" id="tx-date" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 transition-colors">
+                <label for="tx-date" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Date *</label>
+                <input type="date" id="tx-date" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 transition-colors">
               </div>
             </div>
 
             <!-- SPLITWISE / ROOMMATES SECTION (When I pay upfront) -->
-            <div id="i-paid-split-wrapper" class="bg-indigo-50/60 border border-indigo-100 rounded-xl p-3 space-y-2.5">
+            <div id="i-paid-split-wrapper" class="bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 rounded-xl p-3 space-y-2.5">
               <div class="flex items-center justify-between">
                 <label class="flex items-center space-x-2 cursor-pointer">
-                  <input type="checkbox" id="tx-is-split" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
-                  <span class="text-xs font-semibold text-indigo-950">Split with Roommates? (Splitwise)</span>
+                  <input type="checkbox" id="tx-is-split" class="w-4 h-4 text-indigo-600 rounded border-slate-300 dark:border-slate-600 focus:ring-indigo-500 bg-white dark:bg-slate-800">
+                  <span class="text-xs font-semibold text-indigo-950 dark:text-indigo-200">Split with Roommates? (Splitwise)</span>
                 </label>
-                <span class="text-[10px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded-full">Split Calc</span>
+                <span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/80 text-indigo-800 dark:text-indigo-300 font-semibold px-2 py-0.5 rounded-full">Split Calc</span>
               </div>
 
               <!-- Collapsible Split Controls -->
-              <div id="split-controls-wrapper" class="hidden space-y-2 pt-1 border-t border-indigo-100/80">
+              <div id="split-controls-wrapper" class="hidden space-y-2 pt-1 border-t border-indigo-100/80 dark:border-indigo-900/80">
                 <div class="grid grid-cols-2 gap-2">
                   <div>
-                    <label for="tx-split-count" class="block text-[11px] font-medium text-slate-600 mb-0.5">Split by (People)</label>
-                    <input type="number" id="tx-split-count" min="2" max="20" value="4" class="w-full px-2.5 py-1.5 text-xs bg-white border border-indigo-200 rounded-lg text-slate-800 font-semibold">
+                    <label for="tx-split-count" class="block text-[11px] font-medium text-slate-600 dark:text-slate-300 mb-0.5">Split by (People)</label>
+                    <input type="number" id="tx-split-count" min="2" max="20" value="4" class="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700 rounded-lg text-slate-800 dark:text-slate-100 font-semibold">
                   </div>
                   <div>
-                    <label for="tx-my-share" class="block text-[11px] font-medium text-slate-600 mb-0.5">Your Share (₹)</label>
-                    <input type="number" id="tx-my-share" step="any" min="0" placeholder="Auto" class="w-full px-2.5 py-1.5 text-xs bg-white border border-indigo-200 rounded-lg text-slate-800 font-semibold">
+                    <label for="tx-my-share" class="block text-[11px] font-medium text-slate-600 dark:text-slate-300 mb-0.5">Your Share (₹)</label>
+                    <input type="number" id="tx-my-share" step="any" min="0" placeholder="Auto" class="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700 rounded-lg text-slate-800 dark:text-slate-100 font-semibold">
                   </div>
                 </div>
                 
                 <!-- Live Calculation Helper banner -->
-                <div id="split-summary-banner" class="text-[11px] p-2 rounded-lg bg-indigo-100/70 text-indigo-900 leading-tight">
+                <div id="split-summary-banner" class="text-[11px] p-2 rounded-lg bg-indigo-100/70 dark:bg-indigo-900/50 text-indigo-900 dark:text-indigo-200 leading-tight">
                   Debited from your account: <span class="font-bold">₹0</span> • Your expense: <span class="font-bold">₹0</span> • Roommates owe you: <span class="font-bold">₹0</span>
                 </div>
               </div>
@@ -289,8 +336,8 @@
 
             <!-- Category -->
             <div>
-              <label for="tx-category" class="block text-xs font-medium text-slate-600 mb-1">Category</label>
-              <select id="tx-category" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 transition-colors">
+              <label for="tx-category" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Category</label>
+              <select id="tx-category" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 transition-colors">
                 <option value="Food & Dining">🍔 Food & Dining (Restaurants/Swiggy)</option>
                 <option value="Groceries">🛒 Groceries & Room Supplies</option>
                 <option value="Rent & Bills">🏠 Rent, Wifi & Utilities</option>
@@ -303,17 +350,17 @@
 
             <!-- Optional Custom Category Input -->
             <div id="custom-category-wrapper" class="hidden">
-              <label for="tx-custom-category" class="block text-xs font-medium text-indigo-600 mb-1">Custom Category Name</label>
-              <input type="text" id="tx-custom-category" placeholder="e.g. Maid, Water Can, Netflix" class="w-full px-3 py-2 text-sm bg-indigo-50/40 border border-indigo-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800">
+              <label for="tx-custom-category" class="block text-xs font-medium text-indigo-600 dark:text-indigo-400 mb-1">Custom Category Name</label>
+              <input type="text" id="tx-custom-category" placeholder="e.g. Maid, Water Can, Netflix" class="w-full px-3 py-2 text-sm bg-indigo-50/40 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100">
             </div>
 
             <!-- Description / Note -->
             <div>
-              <label for="tx-desc" class="block text-xs font-medium text-slate-600 mb-1">Description / Note</label>
-              <input type="text" id="tx-desc" placeholder="e.g. Dinner at Socials with roommates" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 transition-colors">
+              <label for="tx-desc" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Description / Note</label>
+              <input type="text" id="tx-desc" placeholder="e.g. Dinner at Socials with roommates" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 transition-colors">
             </div>
 
-            <button type="submit" class="w-full py-2.5 px-4 rounded-xl text-white font-medium text-sm bg-slate-900 hover:bg-slate-800 active:scale-[0.99] transition shadow-sm flex items-center justify-center space-x-2">
+            <button type="submit" class="w-full py-2.5 px-4 rounded-xl text-white font-medium text-sm bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 active:scale-[0.99] transition shadow-sm flex items-center justify-center space-x-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
               <span>Add Expense</span>
             </button>
@@ -321,20 +368,20 @@
         </div>
 
         <!-- Category Breakdown Card -->
-        <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm transition-colors">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-sm font-semibold text-slate-900">Your Real Spend Breakdown</h2>
-            <span id="breakdown-total" class="text-xs font-medium text-slate-500">₹0 Total</span>
+            <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Your Real Spend Breakdown</h2>
+            <span id="breakdown-total" class="text-xs font-medium text-slate-500 dark:text-slate-400">₹0 Total</span>
           </div>
 
           <!-- Stacked Progress Bar -->
-          <div id="breakdown-bar" class="w-full h-3 rounded-full bg-slate-100 overflow-hidden flex mb-4">
-            <div class="w-full bg-slate-200 h-full"></div>
+          <div id="breakdown-bar" class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex mb-4">
+            <div class="w-full bg-slate-200 dark:bg-slate-700 h-full"></div>
           </div>
 
           <!-- Category Legend List -->
           <div id="breakdown-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-            <p class="text-xs text-slate-400 text-center py-2">No expenses logged yet</p>
+            <p class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">No expenses logged yet</p>
           </div>
         </div>
 
@@ -342,25 +389,25 @@
 
       <!-- RIGHT COLUMN: Transactions History (7 Cols on large) -->
       <div class="lg:col-span-7">
-        <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col h-full">
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col h-full transition-colors">
           
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 gap-2">
             <div>
-              <h2 class="text-base font-semibold text-slate-900">Recent Transactions</h2>
-              <p class="text-xs text-slate-400">All spends, settlements, and roommate repayments</p>
+              <h2 class="text-sm sm:text-base font-semibold text-slate-900 dark:text-white">Recent Transactions</h2>
+              <p class="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500">All spends, settlements, and roommate repayments</p>
             </div>
             
             <!-- Quick Filter -->
-            <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-lg text-xs font-medium text-slate-600 overflow-x-auto">
-              <button data-filter="all" class="tx-filter-btn px-2.5 py-1 rounded bg-white text-slate-900 shadow-xs">All</button>
-              <button data-filter="bank" class="tx-filter-btn px-2.5 py-1 rounded hover:text-slate-900">Bank</button>
-              <button data-filter="card" class="tx-filter-btn px-2.5 py-1 rounded hover:text-slate-900">Credit Cards</button>
-              <button data-filter="split" class="tx-filter-btn px-2.5 py-1 rounded hover:text-slate-900">Splitwise</button>
+            <div class="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 overflow-x-auto">
+              <button data-filter="all" class="tx-filter-btn px-2.5 py-1 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs">All</button>
+              <button data-filter="bank" class="tx-filter-btn px-2.5 py-1 rounded-lg hover:text-slate-900 dark:hover:text-white">Bank</button>
+              <button data-filter="card" class="tx-filter-btn px-2.5 py-1 rounded-lg hover:text-slate-900 dark:hover:text-white">Cards</button>
+              <button data-filter="split" class="tx-filter-btn px-2.5 py-1 rounded-lg hover:text-slate-900 dark:hover:text-white">Splitwise</button>
             </div>
           </div>
 
           <!-- Transactions Scrollable Feed -->
-          <div id="transactions-container" class="divide-y divide-slate-100 overflow-y-auto flex-1 min-h-[380px] max-h-[640px] -mx-2 px-2 mt-2">
+          <div id="transactions-container" class="divide-y divide-slate-100 dark:divide-slate-800/80 overflow-y-auto flex-1 min-h-[380px] max-h-[640px] -mx-2 px-2 mt-1">
             <!-- Rendered by JS -->
           </div>
 
@@ -371,64 +418,73 @@
   </main>
 
   <!-- Footer with Export & Reset -->
-  <footer class="bg-white border-t border-slate-200 mt-auto py-5">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+  <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 mt-auto py-5 transition-colors">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-3">
       <div class="flex items-center space-x-1">
-        <span>Stored securely in browser <span class="font-semibold text-slate-700">localStorage</span></span>
+        <span>Stored securely in browser <span class="font-semibold text-slate-700 dark:text-slate-300">localStorage</span></span>
       </div>
 
-      <div class="flex items-center space-x-4">
-        <button id="export-json-btn" class="hover:text-slate-900 font-medium underline underline-offset-4 decoration-slate-300">
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <button id="export-json-btn" class="hover:text-slate-900 dark:hover:text-white font-medium underline underline-offset-4 decoration-slate-300 dark:decoration-slate-700">
           Export Data (JSON)
         </button>
         <span>•</span>
-        <label for="import-file-input" class="hover:text-slate-900 font-medium underline underline-offset-4 decoration-slate-300 cursor-pointer">
+        <label for="import-file-input" class="hover:text-slate-900 dark:hover:text-white font-medium underline underline-offset-4 decoration-slate-300 dark:decoration-slate-700 cursor-pointer">
           Import Data
           <input type="file" id="import-file-input" accept=".json" class="hidden">
         </label>
         <span>•</span>
-        <button id="reset-all-btn" class="text-rose-600 hover:text-rose-700 font-medium">
+        <button id="reset-all-btn" class="text-rose-600 dark:text-rose-400 hover:text-rose-700 font-medium">
           Reset All Data
         </button>
       </div>
     </div>
   </footer>
 
-  <!-- ================= MODALS ================= -->
+  <!-- ========================================================================= -->
+  <!-- MODALS -->
+  <!-- ========================================================================= -->
 
-  <!-- 1. Settings & Credit Cards Modal -->
-  <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl border border-slate-200 max-w-lg w-full p-6 shadow-xl space-y-5 max-h-[90vh] overflow-y-auto">
+  <!-- 1. Settings & Accounts Setup Modal -->
+  <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 shadow-xl space-y-5 max-h-[90vh] overflow-y-auto text-slate-900 dark:text-slate-100">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-base font-bold text-slate-900">Balance & Credit Cards Setup</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Manage bank balance and named credit cards</p>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Bank, Cards & Security Setup</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage bank balances, credit cards, and PIN lock</p>
         </div>
-        <button id="close-settings-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+        <button id="close-settings-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
       <form id="settings-form" class="space-y-4">
-        <!-- Initial Bank Balance -->
-        <div>
-          <label for="modal-bank-balance" class="block text-xs font-semibold text-slate-700 mb-1">
-            Initial Bank Account Balance (₹)
-          </label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">₹</span>
-            <input type="number" id="modal-bank-balance" step="any" min="0" required class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900">
+        <!-- Multiple Bank Accounts List -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-xs font-semibold text-slate-800 dark:text-slate-200">
+                Bank Accounts & Starting Balances
+              </label>
+              <p class="text-[11px] text-slate-400 dark:text-slate-500">Kotak, ICICI, Bank of Baroda or custom accounts</p>
+            </div>
+            <button type="button" id="add-bank-row-btn" class="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline">
+              + Add Bank Account
+            </button>
           </div>
-          <p class="text-[11px] text-slate-400 mt-1">Starting cash/savings available in your bank account.</p>
+
+          <div id="modal-banks-container" class="space-y-2.5">
+            <!-- Dynamic bank rows injected via JS -->
+          </div>
         </div>
 
         <!-- Named Credit Cards List -->
-        <div class="pt-2 border-t border-slate-100 space-y-3">
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
           <div class="flex items-center justify-between">
-            <label class="block text-xs font-semibold text-slate-700">
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200">
               Configured Credit Cards & Starting Due
             </label>
-            <button type="button" id="add-card-row-btn" class="text-xs font-medium text-indigo-600 hover:underline">
+            <button type="button" id="add-card-row-btn" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
               + Add Another Card
             </button>
           </div>
@@ -439,30 +495,30 @@
         </div>
 
         <!-- Security & Passcode Configuration -->
-        <div class="pt-3 border-t border-slate-100 space-y-3">
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
           <div class="flex items-center justify-between">
             <div>
-              <label class="block text-xs font-semibold text-slate-800">Passcode Protection</label>
-              <p class="text-[11px] text-slate-400">Lock app on launch and protect reset action</p>
+              <label class="block text-xs font-semibold text-slate-800 dark:text-slate-200">Passcode Protection</label>
+              <p class="text-[11px] text-slate-400 dark:text-slate-500">Locks the app on reload & protects data from being reset</p>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="settings-passcode-toggle" class="sr-only peer">
-              <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+              <div class="w-9 h-5 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
             </label>
           </div>
 
           <div id="settings-pin-container" class="hidden">
-            <label for="settings-pin-input" class="block text-xs font-medium text-slate-700 mb-1">Set 4-Digit Passcode PIN</label>
-            <input type="password" maxlength="6" id="settings-pin-input" placeholder="e.g. 1234" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono tracking-widest text-slate-900">
-            <p class="text-[10px] text-slate-400 mt-1">Remember this PIN. It will be required to unlock SpendFlow and to reset data.</p>
+            <label for="settings-pin-input" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Set 4-Digit Passcode PIN</label>
+            <input type="password" maxlength="6" id="settings-pin-input" placeholder="e.g. 1234" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono tracking-widest text-slate-900 dark:text-white">
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Remember this PIN. It will be required every time SpendFlow opens and to reset data.</p>
           </div>
         </div>
 
-        <div class="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100">
-          <button type="button" id="cancel-settings-btn" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
+        <div class="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" id="cancel-settings-btn" class="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
             Cancel
           </button>
-          <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition shadow-sm">
+          <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500 rounded-xl transition shadow-sm">
             Save Settings
           </button>
         </div>
@@ -471,56 +527,65 @@
   </div>
 
   <!-- 2. Pay CC Bill Modal -->
-  <div id="pay-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-xl space-y-5">
+  <div id="pay-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-xl space-y-5 text-slate-900 dark:text-slate-100">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-base font-bold text-slate-900">Pay Credit Card Bill</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Deduct from bank balance and pay down card debt</p>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Pay Credit Card Bill</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Deduct from bank balance and pay down card debt</p>
         </div>
-        <button id="close-pay-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+        <button id="close-pay-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
       <form id="pay-form" class="space-y-4">
         <div>
-          <label for="modal-pay-card-select" class="block text-xs font-semibold text-slate-700 mb-1">
-            Choose Card to Settle
+          <label for="modal-pay-bank-select" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Paid From Bank Account
           </label>
-          <select id="modal-pay-card-select" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 font-medium">
+          <select id="modal-pay-bank-select" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 font-medium">
             <!-- Populated via JS -->
           </select>
         </div>
 
-        <div class="bg-rose-50 border border-rose-100 rounded-xl p-3.5 flex items-center justify-between">
-          <span class="text-xs font-medium text-rose-800">Current Outstanding for this card</span>
-          <span id="modal-pay-cc-current" class="text-sm font-bold text-rose-600">₹0</span>
+        <div>
+          <label for="modal-pay-card-select" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Choose Card to Settle
+          </label>
+          <select id="modal-pay-card-select" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 font-medium">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-900/60 rounded-xl p-3.5 flex items-center justify-between">
+          <span class="text-xs font-medium text-rose-800 dark:text-rose-300">Current Outstanding for this card</span>
+          <span id="modal-pay-cc-current" class="text-sm font-bold text-rose-600 dark:text-rose-400">₹0</span>
         </div>
 
         <div>
-          <label for="pay-amount" class="block text-xs font-semibold text-slate-700 mb-1">
+          <label for="pay-amount" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Amount to Pay (₹) *
           </label>
           <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">₹</span>
-            <input type="number" id="pay-amount" step="any" min="0.01" required placeholder="5000" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 dark:text-slate-500">₹</span>
+            <input type="number" id="pay-amount" step="any" min="0.01" required placeholder="5000" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900 dark:text-white">
           </div>
           <div class="flex items-center justify-between mt-1.5">
-            <span class="text-[11px] text-slate-400">Debited from bank balance</span>
-            <button type="button" id="pay-full-due-btn" class="text-[11px] font-semibold text-indigo-600 hover:underline">
+            <span class="text-[11px] text-slate-400 dark:text-slate-500">Debited from bank balance</span>
+            <button type="button" id="pay-full-due-btn" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
               Pay Full Due
             </button>
           </div>
         </div>
 
         <div>
-          <label for="pay-date" class="block text-xs font-semibold text-slate-700 mb-1">Payment Date</label>
-          <input type="date" id="pay-date" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800">
+          <label for="pay-date" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Date</label>
+          <input type="date" id="pay-date" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100">
         </div>
 
         <div class="pt-2 flex items-center justify-end space-x-2">
-          <button type="button" id="cancel-pay-btn" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
+          <button type="button" id="cancel-pay-btn" class="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
             Cancel
           </button>
           <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition shadow-sm">
@@ -532,52 +597,61 @@
   </div>
 
   <!-- 3. Receive Splitwise Repayment Modal -->
-  <div id="receive-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-xl space-y-5">
+  <div id="receive-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-xl space-y-5 text-slate-900 dark:text-slate-100">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-base font-bold text-slate-900">Receive Splitwise Repayment</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Credit money back into bank and reduce amount owed to you</p>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Receive Splitwise Repayment</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Credit money back into bank and reduce amount owed to you</p>
         </div>
-        <button id="close-receive-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+        <button id="close-receive-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3.5 flex items-center justify-between">
-        <span class="text-xs font-medium text-emerald-800">Roommates currently owe you</span>
-        <span id="modal-receive-owed-current" class="text-sm font-bold text-emerald-700">₹0</span>
+      <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/60 rounded-xl p-3.5 flex items-center justify-between">
+        <span class="text-xs font-medium text-emerald-800 dark:text-emerald-300">Roommates currently owe you</span>
+        <span id="modal-receive-owed-current" class="text-sm font-bold text-emerald-700 dark:text-emerald-400">₹0</span>
       </div>
 
       <form id="receive-form" class="space-y-4">
         <div>
-          <label for="receive-amount" class="block text-xs font-semibold text-slate-700 mb-1">
+          <label for="modal-receive-bank-select" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Deposit Into Bank Account
+          </label>
+          <select id="modal-receive-bank-select" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 font-medium">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <div>
+          <label for="receive-amount" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Amount Received (₹) *
           </label>
           <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">₹</span>
-            <input type="number" id="receive-amount" step="any" min="0.01" required placeholder="750" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 dark:text-slate-500">₹</span>
+            <input type="number" id="receive-amount" step="any" min="0.01" required placeholder="750" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900 dark:text-white">
           </div>
           <div class="flex items-center justify-between mt-1.5">
-            <span class="text-[11px] text-slate-400">Deposits directly into Bank balance</span>
-            <button type="button" id="receive-full-owed-btn" class="text-[11px] font-semibold text-indigo-600 hover:underline">
+            <span class="text-[11px] text-slate-400 dark:text-slate-500">Deposits directly into Bank balance</span>
+            <button type="button" id="receive-full-owed-btn" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
               Receive Full Owed
             </button>
           </div>
         </div>
 
         <div>
-          <label for="receive-desc" class="block text-xs font-semibold text-slate-700 mb-1">Note / Who paid?</label>
-          <input type="text" id="receive-desc" placeholder="e.g. Rahul & Aman paid back dinner via UPI" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800">
+          <label for="receive-desc" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Note / Who paid?</label>
+          <input type="text" id="receive-desc" placeholder="e.g. Rahul & Aman paid back dinner via UPI" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100">
         </div>
 
         <div>
-          <label for="receive-date" class="block text-xs font-semibold text-slate-700 mb-1">Date Received</label>
-          <input type="date" id="receive-date" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800">
+          <label for="receive-date" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Date Received</label>
+          <input type="date" id="receive-date" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100">
         </div>
 
         <div class="pt-2 flex items-center justify-end space-x-2">
-          <button type="button" id="cancel-receive-btn" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
+          <button type="button" id="cancel-receive-btn" class="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
             Cancel
           </button>
           <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-sm">
@@ -589,52 +663,61 @@
   </div>
 
   <!-- 4. Settle Roommate Debt Modal (Paying Roommate Back via UPI) -->
-  <div id="settle-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-xl space-y-5">
+  <div id="settle-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-xl space-y-5 text-slate-900 dark:text-slate-100">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-base font-bold text-slate-900">Settle Roommate Debt</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Pay back your share to roommate via UPI from Bank</p>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Settle Roommate Debt</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Pay back your share to roommate via UPI from Bank</p>
         </div>
-        <button id="close-settle-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+        <button id="close-settle-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <div class="bg-amber-50 border border-amber-100 rounded-xl p-3.5 flex items-center justify-between">
-        <span class="text-xs font-medium text-amber-800">Total You Currently Owe Roommates</span>
-        <span id="modal-settle-you-owe-current" class="text-sm font-bold text-amber-700">₹0</span>
+      <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/60 rounded-xl p-3.5 flex items-center justify-between">
+        <span class="text-xs font-medium text-amber-800 dark:text-amber-300">Total You Currently Owe Roommates</span>
+        <span id="modal-settle-you-owe-current" class="text-sm font-bold text-amber-700 dark:text-amber-400">₹0</span>
       </div>
 
       <form id="settle-form" class="space-y-4">
         <div>
-          <label for="settle-amount" class="block text-xs font-semibold text-slate-700 mb-1">
+          <label for="modal-settle-bank-select" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Pay From Bank Account
+          </label>
+          <select id="modal-settle-bank-select" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100 font-medium">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <div>
+          <label for="settle-amount" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Amount Paid to Roommate (₹) *
           </label>
           <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">₹</span>
-            <input type="number" id="settle-amount" step="any" min="0.01" required placeholder="100" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 dark:text-slate-500">₹</span>
+            <input type="number" id="settle-amount" step="any" min="0.01" required placeholder="100" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900 dark:text-white">
           </div>
           <div class="flex items-center justify-between mt-1.5">
-            <span class="text-[11px] text-slate-400">Deducts from Bank balance</span>
-            <button type="button" id="settle-full-debt-btn" class="text-[11px] font-semibold text-indigo-600 hover:underline">
+            <span class="text-[11px] text-slate-400 dark:text-slate-500">Deducts from Bank balance</span>
+            <button type="button" id="settle-full-debt-btn" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
               Settle Full Owed
             </button>
           </div>
         </div>
 
         <div>
-          <label for="settle-desc" class="block text-xs font-semibold text-slate-700 mb-1">Who did you pay? / Note</label>
-          <input type="text" id="settle-desc" placeholder="e.g. Paid Rahul via GPay for dinner" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800">
+          <label for="settle-desc" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Who did you pay? / Note</label>
+          <input type="text" id="settle-desc" placeholder="e.g. Paid Rahul via GPay for dinner" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100">
         </div>
 
         <div>
-          <label for="settle-date" class="block text-xs font-semibold text-slate-700 mb-1">Payment Date</label>
-          <input type="date" id="settle-date" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800">
+          <label for="settle-date" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Date</label>
+          <input type="date" id="settle-date" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 dark:text-slate-100">
         </div>
 
         <div class="pt-2 flex items-center justify-end space-x-2">
-          <button type="button" id="cancel-settle-btn" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
+          <button type="button" id="cancel-settle-btn" class="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
             Cancel
           </button>
           <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition shadow-sm">
@@ -646,20 +729,20 @@
   </div>
 
   <!-- 5. App Passcode Full Screen Lock Screen -->
-  <div id="lock-screen-modal" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-4 hidden">
-    <div class="max-w-xs w-full bg-slate-900 border border-slate-800 p-6 rounded-3xl text-center space-y-6 shadow-2xl">
-      <div class="w-14 h-14 bg-indigo-900/60 text-indigo-400 border border-indigo-700/50 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
+  <div id="lock-screen-modal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4 hidden">
+    <div class="max-w-xs w-full bg-slate-900 border border-slate-800 p-6 sm:p-7 rounded-3xl text-center space-y-6 shadow-2xl">
+      <div class="w-14 h-14 bg-indigo-950 text-indigo-400 border border-indigo-800/60 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
         🔒
       </div>
       <div>
         <h2 class="text-lg font-bold text-white tracking-tight">SpendFlow Locked</h2>
-        <p class="text-xs text-slate-400 mt-1">Enter your passcode to view your finances</p>
+        <p class="text-xs text-slate-400 mt-1">Enter your 4-digit PIN to unlock</p>
       </div>
 
       <form id="lock-screen-form" class="space-y-4">
         <div>
-          <input type="password" id="lock-screen-pin" maxlength="6" autofocus placeholder="••••" class="w-full text-center text-2xl tracking-[0.5em] py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono">
-          <p id="lock-error-msg" class="text-xs text-rose-400 mt-2 hidden">Incorrect passcode</p>
+          <input type="password" id="lock-screen-pin" maxlength="6" inputmode="numeric" autofocus placeholder="••••" class="w-full text-center text-2xl tracking-[0.5em] py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono">
+          <p id="lock-error-msg" class="text-xs text-rose-400 mt-2 hidden">Incorrect passcode PIN</p>
         </div>
         <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white text-sm font-semibold rounded-xl transition shadow-sm">
           Unlock
@@ -669,29 +752,29 @@
   </div>
 
   <!-- 6. Confirmation Dialog (Protected with Passcode / Keyword) -->
-  <div id="confirm-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl border border-slate-200 max-w-sm w-full p-6 shadow-xl space-y-4">
-      <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+  <div id="confirm-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-sm w-full p-6 shadow-xl space-y-4 text-slate-900 dark:text-slate-100">
+      <div class="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 flex items-center justify-center">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
       </div>
       <div>
-        <h3 id="confirm-title" class="text-base font-bold text-slate-900">Reset All Data?</h3>
-        <p id="confirm-msg" class="text-xs text-slate-500 mt-1 leading-relaxed">
+        <h3 id="confirm-title" class="text-base font-bold text-slate-900 dark:text-white">Reset All Data?</h3>
+        <p id="confirm-msg" class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
           This will permanently delete all your logged spends, payments, and cards. This action cannot be reversed.
         </p>
       </div>
 
       <!-- Security verification check inside confirmation -->
       <div id="confirm-verification-box" class="pt-1">
-        <label id="confirm-input-label" for="confirm-security-input" class="block text-[11px] font-semibold text-slate-700 mb-1">
+        <label id="confirm-input-label" for="confirm-security-input" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
           Type RESET to confirm:
         </label>
-        <input type="text" id="confirm-security-input" class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-600 font-mono">
-        <p id="confirm-error-note" class="text-[10px] text-rose-600 mt-1 hidden">Code does not match</p>
+        <input type="text" id="confirm-security-input" class="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-600 font-mono">
+        <p id="confirm-error-note" class="text-[10px] text-rose-600 dark:text-rose-400 mt-1 hidden">Code does not match</p>
       </div>
 
       <div class="flex items-center justify-end space-x-2 pt-2">
-        <button id="confirm-cancel-btn" class="px-3.5 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
+        <button id="confirm-cancel-btn" class="px-3.5 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
           Cancel
         </button>
         <button id="confirm-proceed-btn" class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition">
@@ -701,145 +784,169 @@
     </div>
   </div>
 
-  <!-- Toast Notification System -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center space-x-2 transition-all duration-300 opacity-0 pointer-events-none translate-y-3">
-    <span id="toast-icon">✓</span>
-    <span id="toast-text">Action completed successfully</span>
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 dark:bg-indigo-600 text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg flex items-center space-x-2 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-200">
+    <span id="toast-message">Action saved</span>
   </div>
 
-  <!-- ================= APPLICATION LOGIC ================= -->
+  <!-- ========================================================================= -->
+  <!-- APPLICATION LOGIC -->
+  <!-- ========================================================================= -->
   <script>
-    /**
-     * SpendFlow State Management
-     */
-    const STORAGE_KEY = 'spendflow_multi_card_split_v2';
+    const STORAGE_KEY = 'spendflow_tracker_v3';
 
-    const DEFAULT_DATA = {
-      initialBankBalance: 50000,
+    const DEFAULT_STATE = {
+      bankAccounts: [
+        { id: 'bank_kotak', name: 'Kotak Bank', initialBalance: 0 },
+        { id: 'bank_icici', name: 'ICICI Bank', initialBalance: 0 },
+        { id: 'bank_bob', name: 'Bank of Baroda', initialBalance: 0 }
+      ],
+      creditCards: [
+        { id: 'cc_icici', name: 'ICICI Credit Card', initialDue: 0 },
+        { id: 'cc_kotak', name: 'Kotak Credit Card', initialDue: 0 }
+      ],
       passcodeEnabled: false,
       passcode: '',
-      creditCards: [
-        { id: 'card_icici', name: 'ICICI Credit Card', initialDue: 0 },
-        { id: 'card_kotak', name: 'Kotak Credit Card', initialDue: 0 }
-      ],
-      transactions: [
-        {
-          id: 'tx_sample_1',
-          date: new Date().toISOString().split('T')[0],
-          description: 'Team Dinner at Restaurant',
-          amount: 1000,
-          paymentMode: 'card',
-          cardId: 'card_icici',
-          category: 'Food & Dining',
-          type: 'expense',
-          isSplit: true,
-          splitCount: 4,
-          myShare: 250,
-          owedToMe: 750
-        },
-        {
-          id: 'tx_sample_2',
-          date: new Date().toISOString().split('T')[0],
-          description: 'Grocery run with roommates',
-          amount: 800,
-          paymentMode: 'bank',
-          category: 'Groceries',
-          type: 'expense',
-          isSplit: true,
-          splitCount: 2,
-          myShare: 400,
-          owedToMe: 400
-        }
-      ]
+      transactions: []
     };
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+        const parsed = JSON.parse(raw);
+
+        const banks = Array.isArray(parsed.bankAccounts) && parsed.bankAccounts.length > 0
+          ? parsed.bankAccounts
+          : JSON.parse(JSON.stringify(DEFAULT_STATE.bankAccounts));
+
+        const cards = Array.isArray(parsed.creditCards) && parsed.creditCards.length > 0
+          ? parsed.creditCards
+          : JSON.parse(JSON.stringify(DEFAULT_STATE.creditCards));
+
+        return {
+          bankAccounts: banks,
+          creditCards: cards,
+          passcodeEnabled: Boolean(parsed.passcodeEnabled),
+          passcode: parsed.passcode ? String(parsed.passcode) : '',
+          transactions: Array.isArray(parsed.transactions) ? parsed.transactions : []
+        };
+      } catch (err) {
+        console.error('Error loading localStorage:', err);
+        return JSON.parse(JSON.stringify(DEFAULT_STATE));
+      }
+    }
+
+    function saveData(data) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (err) {
+        console.error('Error saving localStorage:', err);
+      }
+    }
 
     let appData = loadData();
     let currentFilter = 'all';
-    let isAppUnlocked = sessionStorage.getItem('spendflow_unlocked') === 'true';
+    // Whenever passcode is enabled, the app starts locked on every visit / reload
+    let isAppUnlocked = false;
+
+    // Theme Management
+    function initTheme() {
+      const savedTheme = localStorage.getItem('spendflow_theme');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('spendflow_theme', isDark ? 'dark' : 'light');
+        renderCategoryBreakdown();
+      });
+    }
 
     const CATEGORY_COLORS = {
-      'Food & Dining': { bg: 'bg-amber-100', text: 'text-amber-800', bar: '#f59e0b' },
-      'Groceries': { bg: 'bg-emerald-100', text: 'text-emerald-800', bar: '#10b981' },
-      'Rent & Bills': { bg: 'bg-blue-100', text: 'text-blue-800', bar: '#3b82f6' },
-      'Transport': { bg: 'bg-purple-100', text: 'text-purple-800', bar: '#a855f7' },
-      'Shopping': { bg: 'bg-pink-100', text: 'text-pink-800', bar: '#ec4899' },
-      'Miscellaneous': { bg: 'bg-slate-100', text: 'text-slate-800', bar: '#64748b' },
-      'CC Bill Payment': { bg: 'bg-indigo-100', text: 'text-indigo-800', bar: '#6366f1' },
-      'Repayment Received': { bg: 'bg-emerald-100', text: 'text-emerald-800', bar: '#10b981' },
-      'Roommate Settle': { bg: 'bg-amber-100', text: 'text-amber-800', bar: '#f59e0b' },
-      'Default': { bg: 'bg-teal-100', text: 'text-teal-800', bar: '#14b8a6' }
+      'Food & Dining': { bg: 'bg-amber-100 dark:bg-amber-950/70', text: 'text-amber-800 dark:text-amber-300', bar: '#f59e0b' },
+      'Groceries': { bg: 'bg-emerald-100 dark:bg-emerald-950/70', text: 'text-emerald-800 dark:text-emerald-300', bar: '#10b981' },
+      'Rent & Bills': { bg: 'bg-blue-100 dark:bg-blue-950/70', text: 'text-blue-800 dark:text-blue-300', bar: '#3b82f6' },
+      'Transport': { bg: 'bg-purple-100 dark:bg-purple-950/70', text: 'text-purple-800 dark:text-purple-300', bar: '#a855f7' },
+      'Shopping': { bg: 'bg-pink-100 dark:bg-pink-950/70', text: 'text-pink-800 dark:text-pink-300', bar: '#ec4899' },
+      'Miscellaneous': { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-800 dark:text-slate-300', bar: '#64748b' },
+      'CC Bill Payment': { bg: 'bg-indigo-100 dark:bg-indigo-950/70', text: 'text-indigo-800 dark:text-indigo-300', bar: '#6366f1' },
+      'Repayment Received': { bg: 'bg-emerald-100 dark:bg-emerald-950/70', text: 'text-emerald-800 dark:text-emerald-300', bar: '#10b981' },
+      'Roommate Settle': { bg: 'bg-amber-100 dark:bg-amber-950/70', text: 'text-amber-800 dark:text-amber-300', bar: '#f59e0b' },
+      'Default': { bg: 'bg-teal-100 dark:bg-teal-950/70', text: 'text-teal-800 dark:text-teal-300', bar: '#14b8a6' }
     };
 
-    /**
-     * Storage Helpers
-     */
-    function loadData() {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('spendflow_personal_tracker_v1');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          
-          let creditCards = parsed.creditCards;
-          if (!Array.isArray(creditCards) || creditCards.length === 0) {
-            creditCards = [
-              { id: 'card_icici', name: 'ICICI Credit Card', initialDue: Number(parsed.initialCcDue) || 0 },
-              { id: 'card_kotak', name: 'Kotak Credit Card', initialDue: 0 }
-            ];
-          }
-
-          const transactions = (parsed.transactions || []).map(tx => {
-            if (tx.paymentMode === 'card' && !tx.cardId) {
-              tx.cardId = 'card_icici';
-            }
-            if (tx.isSplit === undefined) {
-              tx.isSplit = false;
-              tx.myShare = tx.amount;
-              tx.owedToMe = 0;
-            }
-            return tx;
-          });
-
-          return {
-            initialBankBalance: Number(parsed.initialBankBalance) || 0,
-            passcodeEnabled: !!parsed.passcodeEnabled,
-            passcode: parsed.passcode || '',
-            creditCards,
-            transactions
-          };
-        }
-      } catch (err) {
-        console.error('Error reading localStorage', err);
-      }
-      return DEFAULT_DATA;
+    function formatCurrency(val) {
+      const num = Number(val) || 0;
+      const isNegative = num < 0;
+      const formatted = Math.abs(num).toLocaleString('en-IN', {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: num % 1 !== 0 ? 2 : 0
+      });
+      return (isNegative ? '-₹' : '₹') + formatted;
     }
 
-    function saveData() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-      } catch (err) {
-        console.error('Error writing to localStorage', err);
-        showToast('Error saving data locally', 'error');
-      }
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const date = new Date(parts[0], parts[1] - 1, parts[2]);
+      return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function showToast(msg, type = 'default') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      if (!toast || !toastMsg) return;
+      toastMsg.textContent = msg;
+      toast.className = `fixed bottom-5 right-5 z-50 ${type === 'error' ? 'bg-rose-600' : 'bg-slate-900 dark:bg-indigo-600'} text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg flex items-center space-x-2 transform translate-y-0 opacity-100 transition-all duration-200`;
+      setTimeout(() => {
+        toast.classList.replace('translate-y-0', 'translate-y-12');
+        toast.classList.replace('opacity-100', 'opacity-0');
+      }, 2600);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     /**
-     * Core Financial Ledger Calculations
+     * Core Double-Entry & Splitwise Ledger Engine
      */
     function calculateLedger() {
-      let totalBankSpends = 0;
-      let totalCardSpends = 0;
-      let totalCcPaymentsFromBank = 0;
-      let totalRepaymentsReceivedIntoBank = 0;
-      let totalSettledToRoommatesFromBank = 0;
-
-      let totalGrossOutflow = 0;
       let myTruePersonalSpends = 0;
-      let totalOwedToMeCreated = 0;
-      let totalYouOweCreated = 0;
+      let totalGrossOutflow = 0;
+      let splitOwedToMe = 0;
+      let splitIOweRoommates = 0;
+
+      const bankMap = {};
+      appData.bankAccounts.forEach(b => {
+        bankMap[b.id] = {
+          id: b.id,
+          name: b.name,
+          initialBalance: Number(b.initialBalance) || 0,
+          debits: 0,
+          inflows: 0,
+          currentBalance: Number(b.initialBalance) || 0
+        };
+      });
+      const fallbackBankId = appData.bankAccounts[0]?.id;
 
       const cardMap = {};
       appData.creditCards.forEach(c => {
         cardMap[c.id] = {
+          id: c.id,
           name: c.name,
           initialDue: Number(c.initialDue) || 0,
           spends: 0,
@@ -847,103 +954,84 @@
           currentOutstanding: Number(c.initialDue) || 0
         };
       });
+      const fallbackCardId = appData.creditCards[0]?.id;
+
+      const categoryTotals = {};
 
       appData.transactions.forEach(tx => {
-        const amt = Number(tx.amount) || 0;
+        const grossAmount = Number(tx.amount) || 0;
+        const bId = (tx.bankId && bankMap[tx.bankId]) ? tx.bankId : fallbackBankId;
 
         if (tx.type === 'cc_payment') {
-          totalCcPaymentsFromBank += amt;
-          if (tx.cardId && cardMap[tx.cardId]) {
-            cardMap[tx.cardId].payments += amt;
+          if (bId && bankMap[bId]) bankMap[bId].debits += grossAmount;
+          const targetId = (tx.cardId && cardMap[tx.cardId]) ? tx.cardId : fallbackCardId;
+          if (targetId && cardMap[targetId]) {
+            cardMap[targetId].payments += grossAmount;
           }
         } else if (tx.type === 'roommate_repayment') {
-          totalRepaymentsReceivedIntoBank += amt;
+          if (bId && bankMap[bId]) bankMap[bId].inflows += grossAmount;
+          splitOwedToMe -= grossAmount;
         } else if (tx.type === 'roommate_settlement') {
-          totalSettledToRoommatesFromBank += amt;
+          if (bId && bankMap[bId]) bankMap[bId].debits += grossAmount;
+          splitIOweRoommates -= grossAmount;
         } else if (tx.paymentMode === 'roommate' || tx.type === 'roommate_paid') {
-          myTruePersonalSpends += amt;
-          totalYouOweCreated += amt;
+          myTruePersonalSpends += grossAmount;
+          splitIOweRoommates += grossAmount;
+          const cat = tx.category || 'Miscellaneous';
+          categoryTotals[cat] = (categoryTotals[cat] || 0) + grossAmount;
         } else {
-          totalGrossOutflow += amt;
+          // Standard Expense paid by User (via Bank or Credit Card)
+          const myShare = tx.isSplit ? (Number(tx.myShare) ?? grossAmount) : grossAmount;
+          const owedPortion = tx.isSplit ? Math.max(0, grossAmount - myShare) : 0;
 
-          if (tx.isSplit) {
-            myTruePersonalSpends += (Number(tx.myShare) || 0);
-            totalOwedToMeCreated += (Number(tx.owedToMe) || 0);
-          } else {
-            myTruePersonalSpends += amt;
-          }
-
-          if (tx.paymentMode === 'card') {
-            totalCardSpends += amt;
-            const cId = tx.cardId || (appData.creditCards[0] ? appData.creditCards[0].id : null);
-            if (cId && cardMap[cId]) {
-              cardMap[cId].spends += amt;
+          if (tx.paymentMode === 'bank') {
+            if (bId && bankMap[bId]) bankMap[bId].debits += grossAmount;
+          } else if (tx.paymentMode === 'card') {
+            const targetId = (tx.cardId && cardMap[tx.cardId]) ? tx.cardId : fallbackCardId;
+            if (targetId && cardMap[targetId]) {
+              cardMap[targetId].spends += grossAmount;
             }
-          } else {
-            totalBankSpends += amt;
           }
+
+          totalGrossOutflow += grossAmount;
+          myTruePersonalSpends += myShare;
+          splitOwedToMe += owedPortion;
+
+          const cat = tx.category || 'Miscellaneous';
+          categoryTotals[cat] = (categoryTotals[cat] || 0) + myShare;
         }
       });
 
-      // Calculate final card balances
+      let totalBankBalance = 0;
+      Object.keys(bankMap).forEach(id => {
+        const b = bankMap[id];
+        b.currentBalance = b.initialBalance - b.debits + b.inflows;
+        totalBankBalance += b.currentBalance;
+      });
+
       let totalCreditCardOutstanding = 0;
       Object.keys(cardMap).forEach(id => {
         const c = cardMap[id];
-        c.currentOutstanding = c.initialDue + c.spends - c.payments;
+        c.currentOutstanding = Math.max(0, c.initialDue + c.spends - c.payments);
         totalCreditCardOutstanding += c.currentOutstanding;
       });
 
-      // Current Bank Balance
-      const currentBankBalance = appData.initialBankBalance - totalBankSpends - totalCcPaymentsFromBank - totalSettledToRoommatesFromBank + totalRepaymentsReceivedIntoBank;
-
-      // Splitwise Balances
-      const currentOwedToMe = Math.max(0, totalOwedToMeCreated - totalRepaymentsReceivedIntoBank);
-      const currentYouOwe = Math.max(0, totalYouOweCreated - totalSettledToRoommatesFromBank);
-      const netSplit = currentOwedToMe - currentYouOwe;
+      const finalOwedToMe = Math.max(0, splitOwedToMe);
+      const finalIOweRoommates = Math.max(0, splitIOweRoommates);
+      const netSplit = finalOwedToMe - finalIOweRoommates;
 
       return {
-        initialBank: appData.initialBankBalance,
-        currentBankBalance,
+        totalBankBalance,
+        bankMap,
         myTruePersonalSpends,
         totalGrossOutflow,
         totalCreditCardOutstanding,
         cardMap,
-        currentOwedToMe,
-        currentYouOwe,
-        netSplit
+        splitOwedToMe: finalOwedToMe,
+        splitIOweRoommates: finalIOweRoommates,
+        netSplit,
+        categoryTotals
       };
-    }
-
-    function formatCurrency(num) {
-      const val = Number(num) || 0;
-      return '₹' + val.toLocaleString('en-IN', {
-        minimumFractionDigits: val % 1 === 0 ? 0 : 2,
-        maximumFractionDigits: 2
-      });
-    }
-
-    let toastTimeout;
-    function showToast(message, type = 'success') {
-      const toast = document.getElementById('toast');
-      const text = document.getElementById('toast-text');
-      const icon = document.getElementById('toast-icon');
-
-      if (!toast) return;
-
-      text.textContent = message;
-      if (type === 'error') {
-        toast.className = 'fixed bottom-5 right-5 z-50 bg-rose-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center space-x-2 transition-all duration-300 opacity-100 translate-y-0';
-        icon.textContent = '✕';
-      } else {
-        toast.className = 'fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center space-x-2 transition-all duration-300 opacity-100 translate-y-0';
-        icon.textContent = '✓';
-      }
-
-      clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        toast.classList.remove('opacity-100', 'translate-y-0');
-        toast.classList.add('opacity-0', 'translate-y-3', 'pointer-events-none');
-      }, 3000);
     }
 
     /**
@@ -951,20 +1039,15 @@
      */
     function checkAppSecurity() {
       const lockModal = document.getElementById('lock-screen-modal');
-      const lockBtn = document.getElementById('manual-lock-btn');
-
-      if (!lockModal || !lockBtn) return;
+      if (!lockModal) return;
 
       if (appData.passcodeEnabled && appData.passcode) {
-        lockBtn.classList.remove('hidden');
-        lockBtn.classList.add('inline-flex');
-
         if (!isAppUnlocked) {
           lockModal.classList.remove('hidden');
           const pinEl = document.getElementById('lock-screen-pin');
           if (pinEl) {
             pinEl.value = '';
-            pinEl.focus();
+            setTimeout(() => pinEl.focus(), 50);
           }
           const errEl = document.getElementById('lock-error-msg');
           if (errEl) errEl.classList.add('hidden');
@@ -972,8 +1055,6 @@
           lockModal.classList.add('hidden');
         }
       } else {
-        lockBtn.classList.add('hidden');
-        lockBtn.classList.remove('inline-flex');
         lockModal.classList.add('hidden');
       }
     }
@@ -985,7 +1066,6 @@
         const entered = document.getElementById('lock-screen-pin').value;
         if (entered === appData.passcode) {
           isAppUnlocked = true;
-          sessionStorage.setItem('spendflow_unlocked', 'true');
           document.getElementById('lock-screen-modal').classList.add('hidden');
           showToast('App unlocked');
         } else {
@@ -998,11 +1078,23 @@
     const manualLockBtn = document.getElementById('manual-lock-btn');
     if (manualLockBtn) {
       manualLockBtn.addEventListener('click', () => {
-        isAppUnlocked = false;
-        sessionStorage.removeItem('spendflow_unlocked');
-        checkAppSecurity();
+        if (appData.passcodeEnabled && appData.passcode) {
+          isAppUnlocked = false;
+          checkAppSecurity();
+        } else {
+          // Open Settings and enable Passcode toggle so user can set a PIN right away
+          openSettingsModal(true);
+        }
       });
     }
+
+    // Auto-lock when user leaves or switches tabs
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && appData.passcodeEnabled && appData.passcode) {
+        isAppUnlocked = false;
+        checkAppSecurity();
+      }
+    });
 
     /**
      * Update UI Overview
@@ -1010,17 +1102,26 @@
     function renderOverview() {
       const ledger = calculateLedger();
 
-      // 1. Bank Balance
+      // 1. Bank Balance & Per-Bank breakdown tags
       const currentBalEl = document.getElementById('stat-current-balance');
       if (currentBalEl) {
-        currentBalEl.textContent = formatCurrency(ledger.currentBankBalance);
-        currentBalEl.className = ledger.currentBankBalance < 0 
-          ? 'text-lg sm:text-2xl font-bold text-rose-600 tracking-tight'
-          : 'text-lg sm:text-2xl font-bold text-emerald-600 tracking-tight';
+        currentBalEl.textContent = formatCurrency(ledger.totalBankBalance);
+        currentBalEl.className = ledger.totalBankBalance < 0 
+          ? 'text-lg sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tracking-tight'
+          : 'text-lg sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight';
       }
       
-      const startNoteEl = document.getElementById('stat-start-balance-note');
-      if (startNoteEl) startNoteEl.textContent = `Starting: ${formatCurrency(ledger.initialBank)}`;
+      const bankBreakdownEl = document.getElementById('stat-bank-breakdown');
+      if (bankBreakdownEl) {
+        bankBreakdownEl.innerHTML = '';
+        Object.keys(ledger.bankMap).forEach(id => {
+          const b = ledger.bankMap[id];
+          const span = document.createElement('span');
+          span.className = 'px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-medium border border-emerald-100 dark:border-emerald-800/60';
+          span.textContent = `${b.name}: ${formatCurrency(b.currentBalance)}`;
+          bankBreakdownEl.appendChild(span);
+        });
+      }
 
       // 2. Real Spends
       const totalSpentEl = document.getElementById('stat-total-spent');
@@ -1034,8 +1135,8 @@
       if (ccDueEl) {
         ccDueEl.textContent = formatCurrency(ledger.totalCreditCardOutstanding);
         ccDueEl.className = ledger.totalCreditCardOutstanding > 0 
-          ? 'text-lg sm:text-2xl font-bold text-rose-600 tracking-tight' 
-          : 'text-lg sm:text-2xl font-bold text-slate-800 tracking-tight';
+          ? 'text-lg sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tracking-tight' 
+          : 'text-lg sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight';
       }
 
       const ccBreakdownEl = document.getElementById('stat-cc-breakdown');
@@ -1044,7 +1145,7 @@
         Object.keys(ledger.cardMap).forEach(id => {
           const c = ledger.cardMap[id];
           const span = document.createElement('span');
-          span.className = 'px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-medium';
+          span.className = 'px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700';
           span.textContent = `${c.name}: ${formatCurrency(c.currentOutstanding)}`;
           ccBreakdownEl.appendChild(span);
         });
@@ -1055,120 +1156,185 @@
       if (splitNetEl) {
         if (ledger.netSplit > 0) {
           splitNetEl.textContent = `+${formatCurrency(ledger.netSplit)} Net`;
-          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-emerald-600 tracking-tight';
+          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight';
         } else if (ledger.netSplit < 0) {
           splitNetEl.textContent = `-${formatCurrency(Math.abs(ledger.netSplit))} Net`;
-          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-rose-600 tracking-tight';
+          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-rose-600 dark:text-rose-400 tracking-tight';
         } else {
           splitNetEl.textContent = '₹0 Settled';
-          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-slate-800 tracking-tight';
+          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight';
         }
       }
 
       const owedToMePill = document.getElementById('stat-owed-to-me-pill');
-      if (owedToMePill) owedToMePill.textContent = `They owe: ${formatCurrency(ledger.currentOwedToMe)}`;
+      if (owedToMePill) owedToMePill.textContent = `They owe: ${formatCurrency(ledger.splitOwedToMe)}`;
 
       const youOwePill = document.getElementById('stat-you-owe-pill');
-      if (youOwePill) youOwePill.textContent = `You owe: ${formatCurrency(ledger.currentYouOwe)}`;
+      if (youOwePill) youOwePill.textContent = `You owe: ${formatCurrency(ledger.splitIOweRoommates)}`;
 
-      const modalRecOwed = document.getElementById('modal-receive-owed-current');
-      if (modalRecOwed) modalRecOwed.textContent = formatCurrency(ledger.currentOwedToMe);
+      // Sync Modals
+      const paySelect = document.getElementById('modal-pay-card-select');
+      const payCurrentEl = document.getElementById('modal-pay-cc-current');
+      if (paySelect && payCurrentEl) {
+        const selectedCardId = paySelect.value || appData.creditCards[0]?.id;
+        const selectedCardStat = ledger.cardMap[selectedCardId];
+        payCurrentEl.textContent = formatCurrency(selectedCardStat ? selectedCardStat.currentOutstanding : 0);
+      }
 
-      const modalSettleOwe = document.getElementById('modal-settle-you-owe-current');
-      if (modalSettleOwe) modalSettleOwe.textContent = formatCurrency(ledger.currentYouOwe);
+      const recOwedEl = document.getElementById('modal-receive-owed-current');
+      if (recOwedEl) recOwedEl.textContent = formatCurrency(ledger.splitOwedToMe);
 
-      populateCardDropdowns();
-      checkAppSecurity();
-    }
-
-    function populateCardDropdowns() {
-      const txCardSelect = document.getElementById('tx-card-id');
-      const payCardSelect = document.getElementById('modal-pay-card-select');
-
-      if (!txCardSelect) return;
-
-      const currentTxVal = txCardSelect.value;
-      const currentPayVal = payCardSelect ? payCardSelect.value : null;
-
-      txCardSelect.innerHTML = '';
-      if (payCardSelect) payCardSelect.innerHTML = '';
-
-      appData.creditCards.forEach(c => {
-        const opt1 = document.createElement('option');
-        opt1.value = c.id;
-        opt1.textContent = c.name;
-        txCardSelect.appendChild(opt1);
-
-        if (payCardSelect) {
-          const opt2 = document.createElement('option');
-          opt2.value = c.id;
-          opt2.textContent = c.name;
-          payCardSelect.appendChild(opt2);
-        }
-      });
-
-      if (currentTxVal) txCardSelect.value = currentTxVal;
-      if (payCardSelect && currentPayVal) payCardSelect.value = currentPayVal;
-      updatePayModalCardBalance();
-    }
-
-    function updatePayModalCardBalance() {
-      const payCardSelect = document.getElementById('modal-pay-card-select');
-      const modalPayCurrent = document.getElementById('modal-pay-cc-current');
-      if (!payCardSelect || !modalPayCurrent) return;
-
-      const ledger = calculateLedger();
-      const selectedCardId = payCardSelect.value;
-      const cardInfo = ledger.cardMap[selectedCardId];
-      const due = cardInfo ? cardInfo.currentOutstanding : 0;
-      modalPayCurrent.textContent = formatCurrency(due);
-    }
-
-    const paySelectEl = document.getElementById('modal-pay-card-select');
-    if (paySelectEl) {
-      paySelectEl.addEventListener('change', updatePayModalCardBalance);
+      const settleOwedEl = document.getElementById('modal-settle-you-owe-current');
+      if (settleOwedEl) settleOwedEl.textContent = formatCurrency(ledger.splitIOweRoommates);
     }
 
     /**
-     * Render Transactions List
+     * Populate Bank & Card Dropdowns across Form & Modals
+     */
+    function renderAccountSelectOptions() {
+      const ledger = calculateLedger();
+
+      // 1. Bank Dropdowns
+      const bankDropdownIds = ['tx-bank-id', 'modal-pay-bank-select', 'modal-receive-bank-select', 'modal-settle-bank-select'];
+      bankDropdownIds.forEach(selectId => {
+        const el = document.getElementById(selectId);
+        if (!el) return;
+        const prevVal = el.value;
+        el.innerHTML = '';
+        appData.bankAccounts.forEach(b => {
+          const stat = ledger.bankMap[b.id];
+          const opt = document.createElement('option');
+          opt.value = b.id;
+          opt.textContent = `${b.name} (Bal: ${formatCurrency(stat ? stat.currentBalance : 0)})`;
+          el.appendChild(opt);
+        });
+        if (prevVal && ledger.bankMap[prevVal]) el.value = prevVal;
+      });
+
+      // 2. Card Dropdowns
+      const txCardSelect = document.getElementById('tx-card-id');
+      const payCardSelect = document.getElementById('modal-pay-card-select');
+      if (!txCardSelect || !payCardSelect) return;
+
+      const prevTxVal = txCardSelect.value;
+      const prevPayVal = payCardSelect.value;
+
+      txCardSelect.innerHTML = '';
+      payCardSelect.innerHTML = '';
+
+      appData.creditCards.forEach(c => {
+        const stat = ledger.cardMap[c.id];
+        const dueFormatted = formatCurrency(stat ? stat.currentOutstanding : 0);
+
+        const opt1 = document.createElement('option');
+        opt1.value = c.id;
+        opt1.textContent = `${c.name} (Due: ${dueFormatted})`;
+        txCardSelect.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = c.id;
+        opt2.textContent = `${c.name} (Due: ${dueFormatted})`;
+        payCardSelect.appendChild(opt2);
+      });
+
+      if (prevTxVal && ledger.cardMap[prevTxVal]) txCardSelect.value = prevTxVal;
+      if (prevPayVal && ledger.cardMap[prevPayVal]) payCardSelect.value = prevPayVal;
+    }
+
+    /**
+     * Render Category Breakdown
+     */
+    function renderCategoryBreakdown() {
+      const ledger = calculateLedger();
+      const barContainer = document.getElementById('breakdown-bar');
+      const listContainer = document.getElementById('breakdown-list');
+      const totalLabel = document.getElementById('breakdown-total');
+      if (!barContainer || !listContainer || !totalLabel) return;
+
+      totalLabel.textContent = `${formatCurrency(ledger.myTruePersonalSpends)} Total`;
+      const entries = Object.entries(ledger.categoryTotals).sort((a, b) => b[1] - a[1]);
+
+      if (entries.length === 0 || ledger.myTruePersonalSpends <= 0) {
+        barContainer.innerHTML = '<div class="w-full bg-slate-200 dark:bg-slate-700 h-full"></div>';
+        listContainer.innerHTML = '<p class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">No expenses logged yet</p>';
+        return;
+      }
+
+      barContainer.innerHTML = '';
+      listContainer.innerHTML = '';
+
+      entries.forEach(([cat, amount]) => {
+        const pct = Math.max(1, Math.round((amount / ledger.myTruePersonalSpends) * 100));
+        const config = CATEGORY_COLORS[cat] || CATEGORY_COLORS['Default'];
+
+        const seg = document.createElement('div');
+        seg.style.width = `${(amount / ledger.myTruePersonalSpends) * 100}%`;
+        seg.style.backgroundColor = config.bar;
+        seg.className = 'h-full transition-all duration-300 first:rounded-l-full last:rounded-r-full';
+        seg.title = `${cat}: ${formatCurrency(amount)} (${pct}%)`;
+        barContainer.appendChild(seg);
+
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between text-xs py-1';
+        item.innerHTML = `
+          <div class="flex items-center space-x-2 truncate pr-2">
+            <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${config.bar}"></span>
+            <span class="font-medium text-slate-700 dark:text-slate-300 truncate">${escapeHtml(cat)}</span>
+          </div>
+          <div class="flex items-center space-x-2 flex-shrink-0">
+            <span class="font-semibold text-slate-900 dark:text-white">${formatCurrency(amount)}</span>
+            <span class="text-[11px] text-slate-400 dark:text-slate-500 w-9 text-right">${pct}%</span>
+          </div>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    /**
+     * Render Transactions Feed
      */
     function renderTransactions() {
       const container = document.getElementById('transactions-container');
       if (!container) return;
-      container.innerHTML = '';
 
-      let list = [...appData.transactions];
+      const bankLookup = {};
+      appData.bankAccounts.forEach(b => { bankLookup[b.id] = b.name; });
 
-      // Filtering
+      const cardLookup = {};
+      appData.creditCards.forEach(c => { cardLookup[c.id] = c.name; });
+
+      let list = [...appData.transactions].sort((a, b) => {
+        const dateDiff = new Date(b.date) - new Date(a.date);
+        if (dateDiff !== 0) return dateDiff;
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      });
+
       if (currentFilter === 'bank') {
-        list = list.filter(t => t.paymentMode === 'bank' || t.type === 'cc_payment' || t.type === 'roommate_repayment' || t.type === 'roommate_settlement');
+        list = list.filter(tx => tx.paymentMode === 'bank' || tx.type === 'cc_payment' || tx.type === 'roommate_repayment' || tx.type === 'roommate_settlement');
       } else if (currentFilter === 'card') {
-        list = list.filter(t => t.paymentMode === 'card');
+        list = list.filter(tx => tx.paymentMode === 'card' || tx.type === 'cc_payment');
       } else if (currentFilter === 'split') {
-        list = list.filter(t => t.isSplit || t.paymentMode === 'roommate' || t.type === 'roommate_repayment' || t.type === 'roommate_settlement');
+        list = list.filter(tx => tx.isSplit || tx.paymentMode === 'roommate' || tx.type === 'roommate_paid' || tx.type === 'roommate_repayment' || tx.type === 'roommate_settlement');
       }
-
-      list.sort((a, b) => new Date(b.date) - new Date(a.date));
 
       if (list.length === 0) {
         container.innerHTML = `
-          <div class="py-12 text-center text-slate-400 space-y-2">
-            <svg class="w-10 h-10 mx-auto text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <p class="text-sm font-medium">No transactions found</p>
-            <p class="text-xs text-slate-400">Log an expense or settle a roommate split</p>
+          <div class="flex flex-col items-center justify-center h-64 text-center px-4">
+            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-3">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            <p class="text-sm font-medium text-slate-600 dark:text-slate-300">No transactions found</p>
+            <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Add an expense on the left to start tracking.</p>
           </div>
         `;
         return;
       }
 
-      const cardLookup = {};
-      appData.creditCards.forEach(c => { cardLookup[c.id] = c.name; });
+      container.innerHTML = '';
 
       list.forEach(tx => {
         const item = document.createElement('div');
-        item.className = 'py-3 px-2 flex items-center justify-between hover:bg-slate-50/80 rounded-xl transition group';
+        item.className = 'py-3 px-2 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/60 rounded-xl transition group';
 
         const isCCExpense = tx.paymentMode === 'card' && tx.type !== 'cc_payment';
         const isBillPay = tx.type === 'cc_payment';
@@ -1179,20 +1345,25 @@
 
         let badgeSource = '';
         if (isRepayment) {
-          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Repayment Inflow</span>`;
+          const bankName = bankLookup[tx.bankId] || 'Bank';
+          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Deposited into ${escapeHtml(bankName)}</span>`;
         } else if (isSettlement) {
-          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">Debt Settled</span>`;
+          const bankName = bankLookup[tx.bankId] || 'Bank';
+          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">Paid from ${escapeHtml(bankName)}</span>`;
         } else if (isRoommatePaid) {
           const payer = tx.roommateName ? escapeHtml(tx.roommateName) : 'Roommate';
-          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">${payer} Paid (You Owe)</span>`;
+          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">${payer} Paid (You Owe)</span>`;
         } else if (isBillPay) {
           const cardName = cardLookup[tx.cardId] || 'Card';
-          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">CC Payment (${escapeHtml(cardName)})</span>`;
+          const bankName = bankLookup[tx.bankId] || 'Bank';
+          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">CC Payment (${escapeHtml(cardName)} via ${escapeHtml(bankName)})</span>`;
         } else if (isCCExpense) {
           const cardName = cardLookup[tx.cardId] || 'Credit Card';
-          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">${escapeHtml(cardName)}</span>`;
+          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">${escapeHtml(cardName)}</span>`;
         } else {
-          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">Bank / UPI</span>`;
+          const bankName = bankLookup[tx.bankId] || 'Bank';
+          const upiLabel = tx.upiApp ? ` • ${escapeHtml(tx.upiApp)}` : '';
+          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">🏦 ${escapeHtml(bankName)}${upiLabel}</span>`;
         }
 
         const catBadge = (!isRepayment && !isBillPay && !isSettlement)
@@ -1202,17 +1373,17 @@
         let splitNotice = '';
         if (tx.isSplit) {
           splitNotice = `
-            <div class="mt-1 flex items-center space-x-2 text-[10px] text-slate-500 bg-slate-100/70 px-2 py-0.5 rounded-md w-fit">
+            <div class="mt-1 flex items-center space-x-2 text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-800/70 px-2 py-0.5 rounded-md w-fit">
               <span>👥 Split / ${tx.splitCount || 2}</span>
               <span>•</span>
-              <span class="text-slate-700 font-medium">Your share: ${formatCurrency(tx.myShare)}</span>
+              <span class="text-slate-700 dark:text-slate-300 font-medium">Your share: ${formatCurrency(tx.myShare)}</span>
               <span>•</span>
-              <span class="text-indigo-600 font-semibold">${formatCurrency(tx.owedToMe)} owed back</span>
+              <span class="text-indigo-600 dark:text-indigo-400 font-semibold">${formatCurrency(tx.owedToMe)} owed back</span>
             </div>
           `;
         } else if (isRoommatePaid) {
           splitNotice = `
-            <div class="mt-1 flex items-center space-x-2 text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md w-fit">
+            <div class="mt-1 flex items-center space-x-2 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-md w-fit">
               <span>⚠️ Bank not debited • Added to your owed balance</span>
             </div>
           `;
@@ -1220,7 +1391,7 @@
 
         item.innerHTML = `
           <div class="flex items-start space-x-3 min-w-0 pr-3">
-            <div class="w-8 h-8 rounded-lg ${isRepayment ? 'bg-emerald-50 text-emerald-600' : (isRoommatePaid ? 'bg-amber-50 text-amber-600' : (isCCExpense ? 'bg-rose-50 text-rose-600' : (isBillPay ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-600')))} flex-shrink-0 flex items-center justify-center mt-0.5">
+            <div class="w-8 h-8 rounded-lg ${isRepayment ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400' : (isRoommatePaid ? 'bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400' : (isCCExpense ? 'bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400' : (isBillPay ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300')))} flex-shrink-0 flex items-center justify-center mt-0.5">
               ${isRepayment ? `
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
               ` : (isSettlement ? `
@@ -1238,20 +1409,20 @@
 
             <div class="min-w-0">
               <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
-                <span class="text-xs font-semibold text-slate-900 truncate">${escapeHtml(tx.description || 'Expense')}</span>
+                <span class="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">${escapeHtml(tx.description || 'Expense')}</span>
                 ${badgeSource}
                 ${catBadge}
               </div>
-              <p class="text-[11px] text-slate-400 mt-0.5">${formatDate(tx.date)}</p>
+              <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">${formatDate(tx.date)}</p>
               ${splitNotice}
             </div>
           </div>
 
           <div class="flex items-center space-x-2 flex-shrink-0">
-            <span class="text-xs sm:text-sm font-bold ${isRepayment ? 'text-emerald-600' : (isRoommatePaid ? 'text-amber-600' : (isCCExpense ? 'text-rose-600' : 'text-slate-900'))}">
+            <span class="text-xs sm:text-sm font-bold ${isRepayment ? 'text-emerald-600 dark:text-emerald-400' : (isRoommatePaid ? 'text-amber-600 dark:text-amber-400' : (isCCExpense ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'))}">
               ${isRepayment ? '+' : '-'}${formatCurrency(tx.amount)}
             </span>
-            <button data-delete-id="${tx.id}" title="Delete transaction" class="w-7 h-7 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition opacity-60 sm:opacity-0 group-hover:opacity-100">
+            <button data-delete-id="${tx.id}" title="Delete transaction" class="w-7 h-7 rounded-lg text-slate-300 dark:text-slate-600 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 flex items-center justify-center transition opacity-60 sm:opacity-0 group-hover:opacity-100">
               ✕
             </button>
           </div>
@@ -1261,167 +1432,89 @@
       });
     }
 
-    /**
-     * Render Breakdown
-     */
-    function renderCategoryBreakdown() {
-      const breakdownBar = document.getElementById('breakdown-bar');
-      const breakdownList = document.getElementById('breakdown-list');
-      const breakdownTotal = document.getElementById('breakdown-total');
-
-      if (!breakdownBar || !breakdownList || !breakdownTotal) return;
-
-      const categoryTotals = {};
-      let totalMySpends = 0;
-
-      appData.transactions.forEach(tx => {
-        if (tx.type !== 'cc_payment' && tx.type !== 'roommate_repayment' && tx.type !== 'roommate_settlement') {
-          const cat = tx.category || 'Miscellaneous';
-          const amt = tx.paymentMode === 'roommate' 
-            ? (Number(tx.amount) || 0) 
-            : (tx.isSplit ? (Number(tx.myShare) || 0) : (Number(tx.amount) || 0));
-          categoryTotals[cat] = (categoryTotals[cat] || 0) + amt;
-          totalMySpends += amt;
-        }
-      });
-
-      breakdownTotal.textContent = `${formatCurrency(totalMySpends)} Real Spend`;
-
-      if (totalMySpends === 0) {
-        breakdownBar.innerHTML = `<div class="w-full bg-slate-200 h-full"></div>`;
-        breakdownList.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">No personal expenses logged yet</p>`;
-        return;
-      }
-
-      breakdownBar.innerHTML = '';
-      breakdownList.innerHTML = '';
-
-      const sortedCats = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
-
-      sortedCats.forEach(([category, amt]) => {
-        const percent = ((amt / totalMySpends) * 100).toFixed(1);
-        const config = CATEGORY_COLORS[category] || CATEGORY_COLORS['Default'];
-
-        const seg = document.createElement('div');
-        seg.style.width = `${percent}%`;
-        seg.style.backgroundColor = config.bar;
-        seg.className = 'h-full transition-all duration-300';
-        seg.title = `${category}: ${formatCurrency(amt)} (${percent}%)`;
-        breakdownBar.appendChild(seg);
-
-        const listItem = document.createElement('div');
-        listItem.className = 'flex items-center justify-between text-xs py-1';
-        listItem.innerHTML = `
-          <div class="flex items-center space-x-2">
-            <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${config.bar}"></span>
-            <span class="text-slate-700 font-medium">${escapeHtml(category)}</span>
-            <span class="text-slate-400 text-[10px]">(${percent}%)</span>
-          </div>
-          <span class="font-semibold text-slate-900">${formatCurrency(amt)}</span>
-        `;
-        breakdownList.appendChild(listItem);
-      });
-    }
-
     function renderAll() {
       renderOverview();
-      renderTransactions();
+      renderAccountSelectOptions();
       renderCategoryBreakdown();
+      renderTransactions();
     }
 
-    function escapeHtml(text) {
-      if (!text) return '';
-      return String(text)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function formatDate(dateStr) {
-      if (!dateStr) return '';
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
-      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-    }
-
-    /**
-     * UI Event Handlers
-     */
-
-    // Toggle Payment Mode
-    const cardRow = document.getElementById('card-selection-row');
-    const roommateRow = document.getElementById('roommate-payer-row');
+    // =========================================================================
+    // INTERACTIVE FORM LOGIC (PAYMENT MODE & SPLITWISE CALCULATOR)
+    // =========================================================================
+    const paymentRadios = document.querySelectorAll('input[name="paymentMode"]');
+    const bankSelectionRow = document.getElementById('bank-selection-row');
+    const cardSelectionRow = document.getElementById('card-selection-row');
+    const roommatePayerRow = document.getElementById('roommate-payer-row');
     const iPaidSplitWrapper = document.getElementById('i-paid-split-wrapper');
-    const amountLabel = document.getElementById('tx-amount-label');
+    const txAmountLabel = document.getElementById('tx-amount-label');
 
-    document.querySelectorAll('input[name="paymentMode"]').forEach(radio => {
-      radio.addEventListener('change', (e) => {
-        const mode = e.target.value;
+    paymentRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        const mode = document.querySelector('input[name="paymentMode"]:checked').value;
         if (mode === 'card') {
-          if (cardRow) cardRow.classList.remove('hidden');
-          if (roommateRow) roommateRow.classList.add('hidden');
-          if (iPaidSplitWrapper) iPaidSplitWrapper.classList.remove('hidden');
-          if (amountLabel) amountLabel.textContent = 'Total Bill Paid (₹) *';
+          bankSelectionRow.classList.add('hidden');
+          cardSelectionRow.classList.remove('hidden');
+          roommatePayerRow.classList.add('hidden');
+          iPaidSplitWrapper.classList.remove('hidden');
+          txAmountLabel.textContent = 'Total Bill Paid (₹) *';
         } else if (mode === 'roommate') {
-          if (cardRow) cardRow.classList.add('hidden');
-          if (roommateRow) roommateRow.classList.remove('hidden');
-          if (iPaidSplitWrapper) iPaidSplitWrapper.classList.add('hidden');
-          if (amountLabel) amountLabel.textContent = 'My Share / Amount I Owe (₹) *';
+          bankSelectionRow.classList.add('hidden');
+          cardSelectionRow.classList.add('hidden');
+          roommatePayerRow.classList.remove('hidden');
+          iPaidSplitWrapper.classList.add('hidden');
+          txAmountLabel.textContent = 'Your Share Owed (₹) *';
         } else {
-          if (cardRow) cardRow.classList.add('hidden');
-          if (roommateRow) roommateRow.classList.add('hidden');
-          if (iPaidSplitWrapper) iPaidSplitWrapper.classList.remove('hidden');
-          if (amountLabel) amountLabel.textContent = 'Total Bill Paid (₹) *';
+          bankSelectionRow.classList.remove('hidden');
+          cardSelectionRow.classList.add('hidden');
+          roommatePayerRow.classList.add('hidden');
+          iPaidSplitWrapper.classList.remove('hidden');
+          txAmountLabel.textContent = 'Total Bill Paid (₹) *';
         }
       });
     });
 
-    // Split Controls & Live Math
-    const splitCheckbox = document.getElementById('tx-is-split');
-    const splitWrapper = document.getElementById('split-controls-wrapper');
-    const splitCountInput = document.getElementById('tx-split-count');
-    const myShareInput = document.getElementById('tx-my-share');
+    const isSplitCheckbox = document.getElementById('tx-is-split');
+    const splitControlsWrapper = document.getElementById('split-controls-wrapper');
+    const txAmountInput = document.getElementById('tx-amount');
+    const txSplitCountInput = document.getElementById('tx-split-count');
+    const txMyShareInput = document.getElementById('tx-my-share');
     const splitSummaryBanner = document.getElementById('split-summary-banner');
-    const amountInput = document.getElementById('tx-amount');
 
-    if (splitCheckbox) {
-      splitCheckbox.addEventListener('change', () => {
-        if (splitCheckbox.checked) {
-          if (splitWrapper) splitWrapper.classList.remove('hidden');
-          updateSplitMath();
+    function recalculateSplitPreview(autoSetShare = true) {
+      if (!isSplitCheckbox || !isSplitCheckbox.checked) return;
+      const total = parseFloat(txAmountInput.value) || 0;
+      const count = Math.max(2, parseInt(txSplitCountInput.value, 10) || 2);
+
+      if (autoSetShare) {
+        const calculatedShare = +(total / count).toFixed(2);
+        txMyShareInput.value = total > 0 ? calculatedShare : '';
+      }
+
+      const myShare = Math.min(total, Math.max(0, parseFloat(txMyShareInput.value) || 0));
+      const owedBack = +(total - myShare).toFixed(2);
+
+      splitSummaryBanner.innerHTML = `
+        Debited from your account: <span class="font-bold">${formatCurrency(total)}</span> •
+        Your expense: <span class="font-bold">${formatCurrency(myShare)}</span> •
+        Roommates owe you: <span class="font-bold text-indigo-700 dark:text-indigo-300">${formatCurrency(owedBack)}</span>
+      `;
+    }
+
+    if (isSplitCheckbox) {
+      isSplitCheckbox.addEventListener('change', () => {
+        if (isSplitCheckbox.checked) {
+          splitControlsWrapper.classList.remove('hidden');
+          recalculateSplitPreview(true);
         } else {
-          if (splitWrapper) splitWrapper.classList.add('hidden');
+          splitControlsWrapper.classList.add('hidden');
         }
       });
     }
 
-    function updateSplitMath(source = 'count') {
-      if (!amountInput || !splitCountInput || !myShareInput || !splitSummaryBanner) return;
-
-      const total = parseFloat(amountInput.value) || 0;
-      let count = parseInt(splitCountInput.value) || 1;
-      if (count < 1) count = 1;
-
-      if (source === 'count') {
-        const share = Math.round((total / count) * 100) / 100;
-        myShareInput.value = share > 0 ? share : '';
-      }
-
-      const myShare = parseFloat(myShareInput.value) || 0;
-      const owed = Math.max(0, total - myShare);
-
-      splitSummaryBanner.innerHTML = `
-        Debited from account: <span class="font-bold text-slate-900">${formatCurrency(total)}</span> • 
-        Your expense: <span class="font-bold text-slate-900">${formatCurrency(myShare)}</span> • 
-        Roommates owe you: <span class="font-bold text-indigo-700">${formatCurrency(owed)}</span>
-      `;
-    }
-
-    if (amountInput) amountInput.addEventListener('input', () => updateSplitMath('count'));
-    if (splitCountInput) splitCountInput.addEventListener('input', () => updateSplitMath('count'));
-    if (myShareInput) myShareInput.addEventListener('input', () => updateSplitMath('share'));
+    if (txAmountInput) txAmountInput.addEventListener('input', () => recalculateSplitPreview(true));
+    if (txSplitCountInput) txSplitCountInput.addEventListener('input', () => recalculateSplitPreview(true));
+    if (txMyShareInput) txMyShareInput.addEventListener('input', () => recalculateSplitPreview(false));
 
     // Custom Category Toggle
     const categorySelect = document.getElementById('tx-category');
@@ -1429,12 +1522,12 @@
     const customCategoryInput = document.getElementById('tx-custom-category');
 
     if (categorySelect) {
-      categorySelect.addEventListener('change', (e) => {
-        if (e.target.value === '__custom__') {
-          if (customCategoryWrapper) customCategoryWrapper.classList.remove('hidden');
-          if (customCategoryInput) customCategoryInput.focus();
+      categorySelect.addEventListener('change', () => {
+        if (categorySelect.value === '__custom__') {
+          customCategoryWrapper.classList.remove('hidden');
+          customCategoryInput.focus();
         } else {
-          if (customCategoryWrapper) customCategoryWrapper.classList.add('hidden');
+          customCategoryWrapper.classList.add('hidden');
         }
       });
     }
@@ -1445,111 +1538,110 @@
       expenseForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        const amount = parseFloat(amountInput.value);
-        if (isNaN(amount) || amount <= 0) {
+        const paymentMode = document.querySelector('input[name="paymentMode"]:checked').value;
+        const bankId = document.getElementById('tx-bank-id').value;
+        const upiApp = document.getElementById('tx-upi-app').value;
+        const cardId = document.getElementById('tx-card-id').value;
+        const roommateName = document.getElementById('tx-roommate-name').value.trim() || 'Roommate';
+        const amount = parseFloat(txAmountInput.value);
+        const date = document.getElementById('tx-date').value;
+        let category = categorySelect.value;
+        const descInput = document.getElementById('tx-desc');
+
+        if (!amount || amount <= 0) {
           showToast('Please enter a valid amount', 'error');
           return;
         }
 
-        const modeEl = document.querySelector('input[name="paymentMode"]:checked');
-        const paymentMode = modeEl ? modeEl.value : 'bank';
-        const cardId = paymentMode === 'card' ? document.getElementById('tx-card-id').value : null;
-        const date = document.getElementById('tx-date').value || new Date().toISOString().split('T')[0];
-        const desc = document.getElementById('tx-desc').value.trim() || 'Expense';
-        
-        let category = categorySelect ? categorySelect.value : 'Miscellaneous';
-        if (category === '__custom__' && customCategoryInput) {
-          category = customCategoryInput.value.trim() || 'Custom';
+        if (category === '__custom__') {
+          const customVal = customCategoryInput.value.trim();
+          if (!customVal) {
+            showToast('Please enter a custom category name', 'error');
+            return;
+          }
+          category = customVal;
         }
 
-        let newTx;
-
         if (paymentMode === 'roommate') {
-          const roommateName = document.getElementById('tx-roommate-name').value.trim() || 'Roommate';
-          newTx = {
-            id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-            amount,
+          const description = descInput.value.trim() || `${category} (Paid by ${roommateName})`;
+          appData.transactions.push({
+            id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+            type: 'roommate_paid',
             paymentMode: 'roommate',
             roommateName,
-            date,
-            description: desc,
-            category,
-            type: 'roommate_paid',
-            isSplit: true,
-            myShare: amount,
-            owedToMe: 0
-          };
-        } else {
-          const isSplit = splitCheckbox ? splitCheckbox.checked : false;
-          let myShare = amount;
-          let owedToMe = 0;
-          let splitCount = 1;
-
-          if (isSplit) {
-            splitCount = parseInt(splitCountInput.value) || 2;
-            myShare = parseFloat(myShareInput.value) || (amount / splitCount);
-            owedToMe = Math.max(0, amount - myShare);
-          }
-
-          newTx = {
-            id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
             amount,
-            paymentMode,
-            cardId,
-            date,
-            description: desc,
+            myShare: amount,
+            owedToMe: 0,
             category,
-            type: 'expense',
-            isSplit,
-            splitCount,
-            myShare,
-            owedToMe
-          };
+            description,
+            date,
+            createdAt: Date.now()
+          });
+
+          saveData(appData);
+          renderAll();
+          txAmountInput.value = '';
+          descInput.value = '';
+          showToast(`Added ${formatCurrency(amount)} owed to ${roommateName}`);
+          return;
         }
 
-        appData.transactions.unshift(newTx);
-        saveData();
+        // Standard Bank or CC Expense
+        const isSplit = isSplitCheckbox.checked;
+        const splitCount = isSplit ? (parseInt(txSplitCountInput.value, 10) || 2) : 1;
+        const myShare = isSplit ? Math.min(amount, Math.max(0, parseFloat(txMyShareInput.value) || 0)) : amount;
+        const owedToMe = isSplit ? +(amount - myShare).toFixed(2) : 0;
+
+        const description = descInput.value.trim() || category;
+
+        appData.transactions.push({
+          id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+          type: 'expense',
+          paymentMode,
+          bankId: paymentMode === 'bank' ? bankId : null,
+          upiApp: paymentMode === 'bank' ? upiApp : null,
+          cardId: paymentMode === 'card' ? cardId : null,
+          amount,
+          isSplit,
+          splitCount,
+          myShare,
+          owedToMe,
+          category,
+          description,
+          date,
+          createdAt: Date.now()
+        });
+
+        saveData(appData);
         renderAll();
 
-        // Reset Form
-        amountInput.value = '';
-        document.getElementById('tx-desc').value = '';
-        const roomNameEl = document.getElementById('tx-roommate-name');
-        if (roomNameEl) roomNameEl.value = '';
-
-        if (splitCheckbox) splitCheckbox.checked = false;
-        if (splitWrapper) splitWrapper.classList.add('hidden');
-        if (myShareInput) myShareInput.value = '';
-
-        if (categorySelect && categorySelect.value === '__custom__') {
-          if (customCategoryInput) customCategoryInput.value = '';
+        // Reset fields
+        txAmountInput.value = '';
+        descInput.value = '';
+        customCategoryInput.value = '';
+        if (categorySelect.value === '__custom__') {
           categorySelect.value = 'Food & Dining';
-          if (customCategoryWrapper) customCategoryWrapper.classList.add('hidden');
+          customCategoryWrapper.classList.add('hidden');
         }
+        isSplitCheckbox.checked = false;
+        splitControlsWrapper.classList.add('hidden');
 
-        if (paymentMode === 'roommate') {
-          showToast(`Recorded: You owe ${formatCurrency(amount)}`);
-        } else {
-          showToast(`Added expense of ${formatCurrency(amount)}`);
-        }
+        txAmountInput.focus();
+        showToast(isSplit ? `Logged! ${formatCurrency(owedToMe)} added to Splitwise` : 'Expense added');
       });
     }
 
-    // Delete Transaction Delegation
+    // Delete Transaction
     const txContainer = document.getElementById('transactions-container');
     if (txContainer) {
       txContainer.addEventListener('click', (e) => {
-        const deleteBtn = e.target.closest('[data-delete-id]');
-        if (deleteBtn) {
-          const id = deleteBtn.getAttribute('data-delete-id');
-          const txIndex = appData.transactions.findIndex(t => t.id === id);
-          if (txIndex > -1) {
-            const removed = appData.transactions.splice(txIndex, 1)[0];
-            saveData();
-            renderAll();
-            showToast(`Deleted ${formatCurrency(removed.amount)} entry`);
-          }
-        }
+        const btn = e.target.closest('[data-delete-id]');
+        if (!btn) return;
+        const id = btn.getAttribute('data-delete-id');
+        appData.transactions = appData.transactions.filter(t => t.id !== id);
+        saveData(appData);
+        renderAll();
+        showToast('Transaction removed');
       });
     }
 
@@ -1557,21 +1649,20 @@
     document.querySelectorAll('.tx-filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.tx-filter-btn').forEach(b => {
-          b.className = 'tx-filter-btn px-2.5 py-1 rounded hover:text-slate-900';
+          b.className = 'tx-filter-btn px-2.5 py-1 rounded-lg hover:text-slate-900 dark:hover:text-white';
         });
-        btn.className = 'tx-filter-btn px-2.5 py-1 rounded bg-white text-slate-900 shadow-xs';
+        btn.className = 'tx-filter-btn px-2.5 py-1 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs';
         currentFilter = btn.getAttribute('data-filter');
         renderTransactions();
       });
     });
 
-    // Settings Modal
+    // =========================================================================
+    // MODAL 1: SETTINGS, BANK ACCOUNTS, CREDIT CARDS & PASSCODE
+    // =========================================================================
     const settingsModal = document.getElementById('settings-modal');
-    const openSettingsBtn = document.getElementById('open-settings-modal-btn');
-    const closeSettingsBtn = document.getElementById('close-settings-modal');
-    const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+    const modalBanksContainer = document.getElementById('modal-banks-container');
     const modalCardsContainer = document.getElementById('modal-cards-container');
-    const addCardRowBtn = document.getElementById('add-card-row-btn');
     const passcodeToggle = document.getElementById('settings-passcode-toggle');
     const pinContainer = document.getElementById('settings-pin-container');
     const pinInput = document.getElementById('settings-pin-input');
@@ -1579,11 +1670,36 @@
     if (passcodeToggle) {
       passcodeToggle.addEventListener('change', () => {
         if (passcodeToggle.checked) {
-          if (pinContainer) pinContainer.classList.remove('hidden');
-          if (pinInput) pinInput.focus();
+          pinContainer.classList.remove('hidden');
+          pinInput.focus();
         } else {
-          if (pinContainer) pinContainer.classList.add('hidden');
+          pinContainer.classList.add('hidden');
         }
+      });
+    }
+
+    function renderModalBankRows() {
+      if (!modalBanksContainer) return;
+      modalBanksContainer.innerHTML = '';
+      appData.bankAccounts.forEach((b, index) => {
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-12 gap-2 items-center bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700';
+        row.innerHTML = `
+          <div class="col-span-6">
+            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">Bank Name</label>
+            <input type="text" data-bank-idx="${index}" data-bank-field="name" value="${escapeHtml(b.name)}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-slate-800 dark:text-white">
+          </div>
+          <div class="col-span-5">
+            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">Starting Bal (₹)</label>
+            <input type="number" step="any" min="0" data-bank-idx="${index}" data-bank-field="initialBalance" value="${b.initialBalance}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-slate-800 dark:text-white">
+          </div>
+          <div class="col-span-1 pt-3.5 text-center">
+            ${appData.bankAccounts.length > 1 ? `
+              <button type="button" data-remove-bank-idx="${index}" class="text-slate-400 hover:text-rose-600 text-sm font-bold">✕</button>
+            ` : ''}
+          </div>
+        `;
+        modalBanksContainer.appendChild(row);
       });
     }
 
@@ -1592,15 +1708,15 @@
       modalCardsContainer.innerHTML = '';
       appData.creditCards.forEach((c, index) => {
         const row = document.createElement('div');
-        row.className = 'grid grid-cols-12 gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200/80';
+        row.className = 'grid grid-cols-12 gap-2 items-center bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700';
         row.innerHTML = `
           <div class="col-span-6">
-            <label class="block text-[10px] text-slate-500 font-medium">Card Name</label>
-            <input type="text" data-card-idx="${index}" data-card-field="name" value="${escapeHtml(c.name)}" class="w-full px-2 py-1 text-xs bg-white border border-slate-200 rounded-lg font-semibold text-slate-800">
+            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">Card Name</label>
+            <input type="text" data-card-idx="${index}" data-card-field="name" value="${escapeHtml(c.name)}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-slate-800 dark:text-white">
           </div>
           <div class="col-span-5">
-            <label class="block text-[10px] text-slate-500 font-medium">Starting Due (₹)</label>
-            <input type="number" step="any" min="0" data-card-idx="${index}" data-card-field="initialDue" value="${c.initialDue}" class="w-full px-2 py-1 text-xs bg-white border border-slate-200 rounded-lg font-semibold text-slate-800">
+            <label class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium">Starting Due (₹)</label>
+            <input type="number" step="any" min="0" data-card-idx="${index}" data-card-field="initialDue" value="${c.initialDue}" class="w-full px-2 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold text-slate-800 dark:text-white">
           </div>
           <div class="col-span-1 pt-3.5 text-center">
             ${appData.creditCards.length > 1 ? `
@@ -1612,10 +1728,63 @@
       });
     }
 
+    function openSettingsModal(focusPin = false) {
+      if (passcodeToggle) {
+        passcodeToggle.checked = Boolean(appData.passcodeEnabled) || focusPin;
+        if (passcodeToggle.checked) {
+          pinContainer.classList.remove('hidden');
+        } else {
+          pinContainer.classList.add('hidden');
+        }
+      }
+      if (pinInput) pinInput.value = appData.passcode || '';
+      renderModalBankRows();
+      renderModalCardRows();
+      if (settingsModal) settingsModal.classList.remove('hidden');
+      if (focusPin && pinInput) {
+        setTimeout(() => pinInput.focus(), 50);
+      }
+    }
+
+    function closeSettingsModal() {
+      if (settingsModal) settingsModal.classList.add('hidden');
+    }
+
+    const addBankRowBtn = document.getElementById('add-bank-row-btn');
+    if (addBankRowBtn) {
+      addBankRowBtn.addEventListener('click', () => {
+        syncModalInputsToState();
+        appData.bankAccounts.push({
+          id: 'bank_' + Date.now(),
+          name: 'New Bank Account',
+          initialBalance: 0
+        });
+        renderModalBankRows();
+      });
+    }
+
+    if (modalBanksContainer) {
+      modalBanksContainer.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('[data-remove-bank-idx]');
+        if (!removeBtn) return;
+        syncModalInputsToState();
+        const idx = parseInt(removeBtn.getAttribute('data-remove-bank-idx'), 10);
+        if (appData.bankAccounts.length > 1) {
+          appData.bankAccounts.splice(idx, 1);
+          renderModalBankRows();
+        }
+      });
+    }
+
+    const addCardRowBtn = document.getElementById('add-card-row-btn');
     if (addCardRowBtn) {
       addCardRowBtn.addEventListener('click', () => {
-        const newId = 'card_' + Date.now();
-        appData.creditCards.push({ id: newId, name: 'New Card', initialDue: 0 });
+        syncModalInputsToState();
+        appData.creditCards.push({
+          id: 'cc_' + Date.now(),
+          name: 'New Credit Card',
+          initialDue: 0
+        });
         renderModalCardRows();
       });
     }
@@ -1623,46 +1792,56 @@
     if (modalCardsContainer) {
       modalCardsContainer.addEventListener('click', (e) => {
         const removeBtn = e.target.closest('[data-remove-card-idx]');
-        if (removeBtn) {
-          const idx = parseInt(removeBtn.getAttribute('data-remove-card-idx'));
-          if (appData.creditCards.length > 1) {
-            appData.creditCards.splice(idx, 1);
-            renderModalCardRows();
-          }
+        if (!removeBtn) return;
+        syncModalInputsToState();
+        const idx = parseInt(removeBtn.getAttribute('data-remove-card-idx'), 10);
+        if (appData.creditCards.length > 1) {
+          appData.creditCards.splice(idx, 1);
+          renderModalCardRows();
         }
       });
     }
 
-    function openSettings() {
-      const bankEl = document.getElementById('modal-bank-balance');
-      if (bankEl) bankEl.value = appData.initialBankBalance;
-      if (passcodeToggle) passcodeToggle.checked = !!appData.passcodeEnabled;
-      if (pinInput) pinInput.value = appData.passcode || '';
-      if (pinContainer) {
-        if (appData.passcodeEnabled) {
-          pinContainer.classList.remove('hidden');
-        } else {
-          pinContainer.classList.add('hidden');
-        }
+    function syncModalInputsToState() {
+      if (modalBanksContainer) {
+        const nameInputs = modalBanksContainer.querySelectorAll('[data-bank-field="name"]');
+        const balInputs = modalBanksContainer.querySelectorAll('[data-bank-field="initialBalance"]');
+        nameInputs.forEach(inp => {
+          const i = parseInt(inp.getAttribute('data-bank-idx'), 10);
+          if (appData.bankAccounts[i]) appData.bankAccounts[i].name = inp.value.trim() || 'Bank';
+        });
+        balInputs.forEach(inp => {
+          const i = parseInt(inp.getAttribute('data-bank-idx'), 10);
+          if (appData.bankAccounts[i]) appData.bankAccounts[i].initialBalance = parseFloat(inp.value) || 0;
+        });
       }
-      renderModalCardRows();
-      if (settingsModal) settingsModal.classList.remove('hidden');
+
+      if (modalCardsContainer) {
+        const nameInputs = modalCardsContainer.querySelectorAll('[data-card-field="name"]');
+        const dueInputs = modalCardsContainer.querySelectorAll('[data-card-field="initialDue"]');
+        nameInputs.forEach(inp => {
+          const i = parseInt(inp.getAttribute('data-card-idx'), 10);
+          if (appData.creditCards[i]) appData.creditCards[i].name = inp.value.trim() || 'Card';
+        });
+        dueInputs.forEach(inp => {
+          const i = parseInt(inp.getAttribute('data-card-idx'), 10);
+          if (appData.creditCards[i]) appData.creditCards[i].initialDue = parseFloat(inp.value) || 0;
+        });
+      }
     }
 
-    function closeSettings() {
-      if (settingsModal) settingsModal.classList.add('hidden');
-    }
-
-    if (openSettingsBtn) openSettingsBtn.addEventListener('click', openSettings);
-    if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', closeSettings);
-    if (cancelSettingsBtn) cancelSettingsBtn.addEventListener('click', closeSettings);
+    const openSettingsBtn = document.getElementById('open-settings-modal-btn');
+    if (openSettingsBtn) openSettingsBtn.addEventListener('click', () => openSettingsModal(false));
+    const closeSettingsBtn = document.getElementById('close-settings-modal');
+    if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', closeSettingsModal);
+    const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+    if (cancelSettingsBtn) cancelSettingsBtn.addEventListener('click', closeSettingsModal);
 
     const settingsForm = document.getElementById('settings-form');
     if (settingsForm) {
       settingsForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const newBank = parseFloat(document.getElementById('modal-bank-balance').value) || 0;
-        appData.initialBankBalance = newBank;
+        syncModalInputsToState();
 
         // Passcode settings
         appData.passcodeEnabled = passcodeToggle ? passcodeToggle.checked : false;
@@ -1674,72 +1853,61 @@
           }
           appData.passcode = pinVal;
           isAppUnlocked = true;
-          sessionStorage.setItem('spendflow_unlocked', 'true');
         } else {
           appData.passcode = '';
           isAppUnlocked = true;
         }
 
-        if (modalCardsContainer) {
-          modalCardsContainer.querySelectorAll('[data-card-idx]').forEach(input => {
-            const idx = parseInt(input.getAttribute('data-card-idx'));
-            const field = input.getAttribute('data-card-field');
-            if (appData.creditCards[idx]) {
-              if (field === 'initialDue') {
-                appData.creditCards[idx].initialDue = parseFloat(input.value) || 0;
-              } else if (field === 'name') {
-                appData.creditCards[idx].name = input.value.trim() || 'Credit Card';
-              }
-            }
-          });
-        }
-
-        saveData();
+        saveData(appData);
+        checkAppSecurity();
         renderAll();
-        closeSettings();
-        showToast('Settings & Passcode saved');
+        closeSettingsModal();
+        showToast(appData.passcodeEnabled ? 'Settings & Passcode saved' : 'Settings updated');
       });
     }
 
-    // Pay CC Bill Modal
+    // =========================================================================
+    // MODAL 2: PAY CREDIT CARD BILL
+    // =========================================================================
     const payModal = document.getElementById('pay-modal');
-    const openPayBtn = document.getElementById('open-pay-modal-btn');
-    const closePayBtn = document.getElementById('close-pay-modal');
-    const cancelPayBtn = document.getElementById('cancel-pay-btn');
-    const payFullDueBtn = document.getElementById('pay-full-due-btn');
+    const modalPayBankSelect = document.getElementById('modal-pay-bank-select');
+    const modalPayCardSelect = document.getElementById('modal-pay-card-select');
 
-    function openPayBill() {
-      populateCardDropdowns();
-      const ledger = calculateLedger();
-      const paySelect = document.getElementById('modal-pay-card-select');
-      const selectedCardId = paySelect ? paySelect.value : (appData.creditCards[0] ? appData.creditCards[0].id : null);
-      const cardDue = (selectedCardId && ledger.cardMap[selectedCardId]) ? ledger.cardMap[selectedCardId].currentOutstanding : 0;
-      
-      const payAmtEl = document.getElementById('pay-amount');
-      if (payAmtEl) payAmtEl.value = cardDue > 0 ? cardDue : '';
-
-      const payDateEl = document.getElementById('pay-date');
-      if (payDateEl) payDateEl.value = new Date().toISOString().split('T')[0];
-
+    function openPayModal() {
+      renderAccountSelectOptions();
+      renderOverview();
+      document.getElementById('pay-amount').value = '';
+      document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
       if (payModal) payModal.classList.remove('hidden');
     }
 
-    function closePayBill() {
+    function closePayModal() {
       if (payModal) payModal.classList.add('hidden');
     }
 
-    if (openPayBtn) openPayBtn.addEventListener('click', openPayBill);
-    if (closePayBtn) closePayBtn.addEventListener('click', closePayBill);
-    if (cancelPayBtn) cancelPayBtn.addEventListener('click', closePayBill);
+    if (modalPayCardSelect) {
+      modalPayCardSelect.addEventListener('change', () => {
+        const ledger = calculateLedger();
+        const stat = ledger.cardMap[modalPayCardSelect.value];
+        document.getElementById('modal-pay-cc-current').textContent = formatCurrency(stat ? stat.currentOutstanding : 0);
+      });
+    }
 
+    const openPayBtn = document.getElementById('open-pay-modal-btn');
+    if (openPayBtn) openPayBtn.addEventListener('click', openPayModal);
+    const closePayBtn = document.getElementById('close-pay-modal');
+    if (closePayBtn) closePayBtn.addEventListener('click', closePayModal);
+    const cancelPayBtn = document.getElementById('cancel-pay-btn');
+    if (cancelPayBtn) cancelPayBtn.addEventListener('click', closePayModal);
+
+    const payFullDueBtn = document.getElementById('pay-full-due-btn');
     if (payFullDueBtn) {
       payFullDueBtn.addEventListener('click', () => {
         const ledger = calculateLedger();
-        const paySelect = document.getElementById('modal-pay-card-select');
-        const selectedCardId = paySelect ? paySelect.value : null;
-        const cardDue = (selectedCardId && ledger.cardMap[selectedCardId]) ? ledger.cardMap[selectedCardId].currentOutstanding : 0;
-        const payAmtEl = document.getElementById('pay-amount');
-        if (payAmtEl) payAmtEl.value = Math.max(0, cardDue);
+        const stat = ledger.cardMap[modalPayCardSelect.value];
+        if (stat && stat.currentOutstanding > 0) {
+          document.getElementById('pay-amount').value = stat.currentOutstanding;
+        }
       });
     }
 
@@ -1747,70 +1915,72 @@
     if (payForm) {
       payForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const bankId = modalPayBankSelect.value;
+        const cardId = modalPayCardSelect.value;
         const amount = parseFloat(document.getElementById('pay-amount').value);
-        if (isNaN(amount) || amount <= 0) {
-          showToast('Please enter a valid payment amount', 'error');
+        const date = document.getElementById('pay-date').value;
+
+        if (!amount || amount <= 0) {
+          showToast('Enter a valid payment amount', 'error');
           return;
         }
 
-        const cardSelect = document.getElementById('modal-pay-card-select');
-        const cardId = cardSelect ? cardSelect.value : null;
-        const cardName = appData.creditCards.find(c => c.id === cardId)?.name || 'Credit Card';
-        const date = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
+        const cardObj = appData.creditCards.find(c => c.id === cardId);
+        const cardName = cardObj ? cardObj.name : 'Credit Card';
 
-        const settlementTx = {
-          id: 'tx_pay_' + Date.now(),
-          amount,
+        appData.transactions.push({
+          id: 'pay_' + Date.now(),
+          type: 'cc_payment',
           paymentMode: 'bank',
+          bankId,
           cardId,
+          amount,
           category: 'CC Bill Payment',
+          description: `${cardName} Bill Settlement`,
           date,
-          description: `Paid ${cardName} Bill`,
-          type: 'cc_payment'
-        };
+          createdAt: Date.now()
+        });
 
-        appData.transactions.unshift(settlementTx);
-        saveData();
+        saveData(appData);
         renderAll();
-        closePayBill();
-        showToast(`Settled ${cardName} bill of ${formatCurrency(amount)}`);
+        closePayModal();
+        showToast(`${cardName} payment recorded!`);
       });
     }
 
-    // Receive Splitwise Repayment Modal
+    // =========================================================================
+    // MODAL 3: RECEIVE SPLITWISE REPAYMENT
+    // =========================================================================
     const receiveModal = document.getElementById('receive-modal');
-    const openReceiveBtn = document.getElementById('open-receive-modal-btn');
-    const closeReceiveBtn = document.getElementById('close-receive-modal');
-    const cancelReceiveBtn = document.getElementById('cancel-receive-btn');
-    const receiveFullOwedBtn = document.getElementById('receive-full-owed-btn');
+    const modalReceiveBankSelect = document.getElementById('modal-receive-bank-select');
 
-    function openReceive() {
-      const ledger = calculateLedger();
-      const recAmtEl = document.getElementById('receive-amount');
-      if (recAmtEl) recAmtEl.value = ledger.currentOwedToMe > 0 ? ledger.currentOwedToMe : '';
-
-      const recDateEl = document.getElementById('receive-date');
-      if (recDateEl) recDateEl.value = new Date().toISOString().split('T')[0];
-
-      const recDescEl = document.getElementById('receive-desc');
-      if (recDescEl) recDescEl.value = '';
-
+    function openReceiveModal() {
+      renderAccountSelectOptions();
+      renderOverview();
+      document.getElementById('receive-amount').value = '';
+      document.getElementById('receive-desc').value = '';
+      document.getElementById('receive-date').value = new Date().toISOString().split('T')[0];
       if (receiveModal) receiveModal.classList.remove('hidden');
     }
 
-    function closeReceive() {
+    function closeReceiveModal() {
       if (receiveModal) receiveModal.classList.add('hidden');
     }
 
-    if (openReceiveBtn) openReceiveBtn.addEventListener('click', openReceive);
-    if (closeReceiveBtn) closeReceiveBtn.addEventListener('click', closeReceive);
-    if (cancelReceiveBtn) cancelReceiveBtn.addEventListener('click', closeReceive);
+    const openRecBtn = document.getElementById('open-receive-modal-btn');
+    if (openRecBtn) openRecBtn.addEventListener('click', openReceiveModal);
+    const closeRecBtn = document.getElementById('close-receive-modal');
+    if (closeRecBtn) closeRecBtn.addEventListener('click', closeReceiveModal);
+    const cancelRecBtn = document.getElementById('cancel-receive-btn');
+    if (cancelRecBtn) cancelRecBtn.addEventListener('click', closeReceiveModal);
 
-    if (receiveFullOwedBtn) {
-      receiveFullOwedBtn.addEventListener('click', () => {
+    const recFullBtn = document.getElementById('receive-full-owed-btn');
+    if (recFullBtn) {
+      recFullBtn.addEventListener('click', () => {
         const ledger = calculateLedger();
-        const recAmtEl = document.getElementById('receive-amount');
-        if (recAmtEl) recAmtEl.value = Math.max(0, ledger.currentOwedToMe);
+        if (ledger.splitOwedToMe > 0) {
+          document.getElementById('receive-amount').value = ledger.splitOwedToMe;
+        }
       });
     }
 
@@ -1818,67 +1988,68 @@
     if (receiveForm) {
       receiveForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const bankId = modalReceiveBankSelect.value;
         const amount = parseFloat(document.getElementById('receive-amount').value);
-        if (isNaN(amount) || amount <= 0) {
-          showToast('Please enter a valid amount', 'error');
+        const desc = document.getElementById('receive-desc').value.trim() || 'Splitwise Roommate Repayment';
+        const date = document.getElementById('receive-date').value;
+
+        if (!amount || amount <= 0) {
+          showToast('Enter a valid amount', 'error');
           return;
         }
 
-        const date = document.getElementById('receive-date').value || new Date().toISOString().split('T')[0];
-        const desc = document.getElementById('receive-desc').value.trim() || 'Roommate Splitwise Repayment';
-
-        const repaymentTx = {
-          id: 'tx_rec_' + Date.now(),
-          amount,
+        appData.transactions.push({
+          id: 'rec_' + Date.now(),
+          type: 'roommate_repayment',
           paymentMode: 'bank',
+          bankId,
+          amount,
           category: 'Repayment Received',
-          date,
           description: desc,
-          type: 'roommate_repayment'
-        };
+          date,
+          createdAt: Date.now()
+        });
 
-        appData.transactions.unshift(repaymentTx);
-        saveData();
+        saveData(appData);
         renderAll();
-        closeReceive();
-        showToast(`Received ${formatCurrency(amount)} back into Bank`);
+        closeReceiveModal();
+        showToast('Repayment added to bank balance!');
       });
     }
 
-    // Settle Roommate Modal (Pay Roommate Back)
+    // =========================================================================
+    // MODAL 4: SETTLE ROOMMATE DEBT (PAYING ROOMMATE BACK)
+    // =========================================================================
     const settleModal = document.getElementById('settle-modal');
-    const openSettleBtn = document.getElementById('open-settle-modal-btn');
-    const closeSettleBtn = document.getElementById('close-settle-modal');
-    const cancelSettleBtn = document.getElementById('cancel-settle-btn');
-    const settleFullDebtBtn = document.getElementById('settle-full-debt-btn');
+    const modalSettleBankSelect = document.getElementById('modal-settle-bank-select');
 
-    function openSettle() {
-      const ledger = calculateLedger();
-      const setAmtEl = document.getElementById('settle-amount');
-      if (setAmtEl) setAmtEl.value = ledger.currentYouOwe > 0 ? ledger.currentYouOwe : '';
-
-      const setDateEl = document.getElementById('settle-date');
-      if (setDateEl) setDateEl.value = new Date().toISOString().split('T')[0];
-
-      const setDescEl = document.getElementById('settle-desc');
-      if (setDescEl) setDescEl.value = '';
-
+    function openSettleModal() {
+      renderAccountSelectOptions();
+      renderOverview();
+      document.getElementById('settle-amount').value = '';
+      document.getElementById('settle-desc').value = '';
+      document.getElementById('settle-date').value = new Date().toISOString().split('T')[0];
       if (settleModal) settleModal.classList.remove('hidden');
     }
 
-    function closeSettle() {
+    function closeSettleModal() {
       if (settleModal) settleModal.classList.add('hidden');
     }
 
-    if (openSettleBtn) openSettleBtn.addEventListener('click', openSettle);
-    if (closeSettleBtn) closeSettleBtn.addEventListener('click', closeSettle);
-    if (cancelSettleBtn) cancelSettleBtn.addEventListener('click', closeSettle);
+    const openSettleBtn = document.getElementById('open-settle-modal-btn');
+    if (openSettleBtn) openSettleBtn.addEventListener('click', openSettleModal);
+    const closeSettleBtn = document.getElementById('close-settle-modal');
+    if (closeSettleBtn) closeSettleBtn.addEventListener('click', closeSettleModal);
+    const cancelSettleBtn = document.getElementById('cancel-settle-btn');
+    if (cancelSettleBtn) cancelSettleBtn.addEventListener('click', closeSettleModal);
 
-    if (settleFullDebtBtn) {
-      settleFullDebtBtn.addEventListener('click', () => {
+    const settleFullBtn = document.getElementById('settle-full-debt-btn');
+    if (settleFullBtn) {
+      settleFullBtn.addEventListener('click', () => {
         const ledger = calculateLedger();
-        const setAmtEl = document.getElementById('settle-amount');
-        if (setAmtEl) setAmtEl.value = Math.max(0, ledger.currentYouOwe);
+        if (ledger.splitIOweRoommates > 0) {
+          document.getElementById('settle-amount').value = ledger.splitIOweRoommates;
+        }
       });
     }
 
@@ -1886,162 +2057,84 @@
     if (settleForm) {
       settleForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const bankId = modalSettleBankSelect.value;
         const amount = parseFloat(document.getElementById('settle-amount').value);
-        if (isNaN(amount) || amount <= 0) {
-          showToast('Please enter a valid amount', 'error');
+        const desc = document.getElementById('settle-desc').value.trim() || 'Settled Roommate Splitwise';
+        const date = document.getElementById('settle-date').value;
+
+        if (!amount || amount <= 0) {
+          showToast('Enter a valid settlement amount', 'error');
           return;
         }
 
-        const date = document.getElementById('settle-date').value || new Date().toISOString().split('T')[0];
-        const desc = document.getElementById('settle-desc').value.trim() || 'Roommate Debt Settlement';
-
-        const settleTx = {
-          id: 'tx_settle_' + Date.now(),
-          amount,
+        appData.transactions.push({
+          id: 'set_' + Date.now(),
+          type: 'roommate_settlement',
           paymentMode: 'bank',
+          bankId,
+          amount,
           category: 'Roommate Settle',
-          date,
           description: desc,
-          type: 'roommate_settlement'
-        };
-
-        appData.transactions.unshift(settleTx);
-        saveData();
-        renderAll();
-        closeSettle();
-        showToast(`Paid ${formatCurrency(amount)} to roommate from Bank`);
-      });
-    }
-
-    // Protected Confirmation Modal
-    const confirmModal = document.getElementById('confirm-modal');
-    const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
-    const confirmProceedBtn = document.getElementById('confirm-proceed-btn');
-    const confirmSecurityInput = document.getElementById('confirm-security-input');
-    const confirmInputLabel = document.getElementById('confirm-input-label');
-    const confirmErrorNote = document.getElementById('confirm-error-note');
-    let pendingConfirmAction = null;
-
-    function promptConfirm(callback) {
-      pendingConfirmAction = callback;
-      if (confirmSecurityInput) confirmSecurityInput.value = '';
-      if (confirmErrorNote) confirmErrorNote.classList.add('hidden');
-
-      if (confirmInputLabel && confirmSecurityInput) {
-        if (appData.passcodeEnabled && appData.passcode) {
-          confirmInputLabel.textContent = 'Enter your 4-digit Passcode PIN to confirm:';
-          confirmSecurityInput.type = 'password';
-          confirmSecurityInput.placeholder = '••••';
-        } else {
-          confirmInputLabel.textContent = 'Type RESET to confirm:';
-          confirmSecurityInput.type = 'text';
-          confirmSecurityInput.placeholder = 'RESET';
-        }
-      }
-
-      if (confirmModal) confirmModal.classList.remove('hidden');
-      if (confirmSecurityInput) confirmSecurityInput.focus();
-    }
-
-    if (confirmCancelBtn) {
-      confirmCancelBtn.addEventListener('click', () => {
-        if (confirmModal) confirmModal.classList.add('hidden');
-        pendingConfirmAction = null;
-      });
-    }
-
-    if (confirmProceedBtn) {
-      confirmProceedBtn.addEventListener('click', () => {
-        const val = confirmSecurityInput ? confirmSecurityInput.value.trim() : '';
-
-        if (appData.passcodeEnabled && appData.passcode) {
-          if (val !== appData.passcode) {
-            if (confirmErrorNote) {
-              confirmErrorNote.textContent = 'Incorrect Passcode PIN';
-              confirmErrorNote.classList.remove('hidden');
-            }
-            return;
-          }
-        } else {
-          if (val.toUpperCase() !== 'RESET') {
-            if (confirmErrorNote) {
-              confirmErrorNote.textContent = 'Please type RESET to proceed';
-              confirmErrorNote.classList.remove('hidden');
-            }
-            return;
-          }
-        }
-
-        if (pendingConfirmAction) pendingConfirmAction();
-        if (confirmModal) confirmModal.classList.add('hidden');
-        pendingConfirmAction = null;
-      });
-    }
-
-    // Reset All Data
-    const resetAllBtn = document.getElementById('reset-all-btn');
-    if (resetAllBtn) {
-      resetAllBtn.addEventListener('click', () => {
-        promptConfirm(() => {
-          appData = {
-            initialBankBalance: 0,
-            passcodeEnabled: appData.passcodeEnabled,
-            passcode: appData.passcode,
-            creditCards: [
-              { id: 'card_icici', name: 'ICICI Credit Card', initialDue: 0 },
-              { id: 'card_kotak', name: 'Kotak Credit Card', initialDue: 0 }
-            ],
-            transactions: []
-          };
-          saveData();
-          renderAll();
-          showToast('All records reset successfully');
+          date,
+          createdAt: Date.now()
         });
+
+        saveData(appData);
+        renderAll();
+        closeSettleModal();
+        showToast('Roommate debt settled from Bank!');
       });
     }
 
-    // Export JSON
+    // =========================================================================
+    // EXPORT / IMPORT / PROTECTED RESET
+    // =========================================================================
     const exportBtn = document.getElementById('export-json-btn');
     if (exportBtn) {
       exportBtn.addEventListener('click', () => {
-        const jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-        const dlAnchor = document.createElement('a');
-        dlAnchor.setAttribute("href", jsonStr);
-        dlAnchor.setAttribute("download", `spendflow_backup_${new Date().toISOString().split('T')[0]}.json`);
-        document.body.appendChild(dlAnchor);
-        dlAnchor.click();
-        dlAnchor.remove();
-        showToast('Export file downloaded');
+        const dataStr = JSON.stringify(appData, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `spendflow_backup_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Data exported as JSON');
       });
     }
 
-    // Import JSON
     const importInput = document.getElementById('import-file-input');
     if (importInput) {
       importInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = (event) => {
           try {
             const imported = JSON.parse(event.target.result);
-            if (typeof imported.initialBankBalance === 'number' && Array.isArray(imported.transactions)) {
-              appData = imported;
-              if (!Array.isArray(appData.creditCards)) {
-                appData.creditCards = [
-                  { id: 'card_icici', name: 'ICICI Credit Card', initialDue: 0 },
-                  { id: 'card_kotak', name: 'Kotak Credit Card', initialDue: 0 }
-                ];
-              }
-              saveData();
+            if (imported && Array.isArray(imported.transactions)) {
+              appData = {
+                bankAccounts: Array.isArray(imported.bankAccounts) && imported.bankAccounts.length > 0
+                  ? imported.bankAccounts
+                  : JSON.parse(JSON.stringify(DEFAULT_STATE.bankAccounts)),
+                creditCards: Array.isArray(imported.creditCards) && imported.creditCards.length > 0
+                  ? imported.creditCards
+                  : JSON.parse(JSON.stringify(DEFAULT_STATE.creditCards)),
+                passcodeEnabled: Boolean(imported.passcodeEnabled),
+                passcode: imported.passcode ? String(imported.passcode) : '',
+                transactions: imported.transactions
+              };
+              saveData(appData);
               renderAll();
-              showToast('Data imported successfully');
+              showToast('Backup restored!');
             } else {
-              showToast('Invalid backup file format', 'error');
+              showToast('Invalid JSON file', 'error');
             }
           } catch (err) {
-            showToast('Could not parse JSON file', 'error');
+            showToast('Failed to read JSON file', 'error');
           }
         };
         reader.readAsText(file);
@@ -2049,19 +2142,72 @@
       });
     }
 
-    // Escape Key Listener
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeSettings();
-        closePayBill();
-        closeReceive();
-        closeSettle();
-        if (confirmModal) confirmModal.classList.add('hidden');
-      }
-    });
+    // Protected Reset Modal Logic
+    const confirmModal = document.getElementById('confirm-modal');
+    const confirmInputLabel = document.getElementById('confirm-input-label');
+    const confirmSecurityInput = document.getElementById('confirm-security-input');
+    const confirmErrorNote = document.getElementById('confirm-error-note');
+
+    const resetAllBtn = document.getElementById('reset-all-btn');
+    if (resetAllBtn) {
+      resetAllBtn.addEventListener('click', () => {
+        confirmSecurityInput.value = '';
+        confirmErrorNote.classList.add('hidden');
+
+        if (appData.passcodeEnabled && appData.passcode) {
+          confirmInputLabel.textContent = 'Enter your Passcode PIN to authorize reset:';
+          confirmSecurityInput.type = 'password';
+          confirmSecurityInput.placeholder = '••••';
+        } else {
+          confirmInputLabel.textContent = 'Type RESET (in caps) to confirm permanent wipe:';
+          confirmSecurityInput.type = 'text';
+          confirmSecurityInput.placeholder = 'RESET';
+        }
+
+        confirmModal.classList.remove('hidden');
+        setTimeout(() => confirmSecurityInput.focus(), 50);
+      });
+    }
+
+    const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+    if (confirmCancelBtn) {
+      confirmCancelBtn.addEventListener('click', () => {
+        confirmModal.classList.add('hidden');
+      });
+    }
+
+    const confirmProceedBtn = document.getElementById('confirm-proceed-btn');
+    if (confirmProceedBtn) {
+      confirmProceedBtn.addEventListener('click', () => {
+        const entered = confirmSecurityInput.value.trim();
+
+        if (appData.passcodeEnabled && appData.passcode) {
+          if (entered !== appData.passcode) {
+            confirmErrorNote.textContent = 'Incorrect Passcode PIN. Reset blocked.';
+            confirmErrorNote.classList.remove('hidden');
+            return;
+          }
+        } else {
+          if (entered !== 'RESET') {
+            confirmErrorNote.textContent = 'Please type RESET exactly to confirm.';
+            confirmErrorNote.classList.remove('hidden');
+            return;
+          }
+        }
+
+        appData = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        saveData(appData);
+        checkAppSecurity();
+        renderAll();
+        confirmModal.classList.add('hidden');
+        showToast('All data has been reset');
+      });
+    }
 
     // Initialize on Load
     window.onload = function() {
+      initTheme();
+
       const today = new Date().toISOString().split('T')[0];
       const txDate = document.getElementById('tx-date');
       const payDate = document.getElementById('pay-date');
@@ -2073,6 +2219,8 @@
       if (recDate) recDate.value = today;
       if (setDate) setDate.value = today;
 
+      // Always check passcode status on every reload
+      checkAppSecurity();
       renderAll();
     };
   </script>
