@@ -72,6 +72,15 @@
           <span class="sm:hidden">Receive</span>
         </button>
 
+        <!-- Settle Roommate Debt Button -->
+        <button id="open-settle-modal-btn" class="inline-flex items-center px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors shadow-sm">
+          <svg class="w-4 h-4 mr-1 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span class="hidden sm:inline">Settle Roommate</span>
+          <span class="sm:hidden">Settle</span>
+        </button>
+
         <!-- Pay CC Bill Button -->
         <button id="open-pay-modal-btn" class="inline-flex items-center px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors shadow-sm">
           <svg class="w-4 h-4 mr-1 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,6 +96,11 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           <span class="hidden sm:inline">Settings</span>
+        </button>
+
+        <!-- Lock App Button (Visible if Passcode Enabled) -->
+        <button id="manual-lock-btn" title="Lock App" class="hidden items-center p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
         </button>
       </div>
     </div>
@@ -144,17 +158,20 @@
         <div class="absolute bottom-0 left-0 right-0 h-1 bg-rose-500"></div>
       </div>
 
-      <!-- 4. Roommates Owe You (Splitwise Receivable) -->
+      <!-- 4. Splitwise & Roommates Ledger -->
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600">Owed to You</span>
+          <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600">Splitwise Ledger</span>
           <span class="w-6 h-6 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xs">
             👥
           </span>
         </div>
         <div class="mt-2.5">
-          <div id="stat-owed-to-me" class="text-lg sm:text-2xl font-bold text-indigo-600 tracking-tight">₹0</div>
-          <p class="text-[11px] text-slate-400 mt-0.5 truncate">Pending Splitwise repayments</p>
+          <div id="stat-split-net" class="text-lg sm:text-2xl font-bold text-indigo-600 tracking-tight">₹0</div>
+          <div class="text-[10px] mt-1 flex flex-wrap gap-1.5">
+            <span id="stat-owed-to-me-pill" class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium">They owe: ₹0</span>
+            <span id="stat-you-owe-pill" class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-medium">You owe: ₹0</span>
+          </div>
         </div>
         <div class="absolute bottom-0 left-0 right-0 h-1 bg-indigo-500"></div>
       </div>
@@ -176,22 +193,28 @@
 
           <form id="expense-form" class="space-y-4">
             
-            <!-- Payment Source Switcher -->
+            <!-- Payment Source Switcher (Bank vs Card vs Roommate Paid) -->
             <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1.5">Paid Using</label>
-              <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold text-center">
+              <label class="block text-xs font-medium text-slate-600 mb-1.5">Who Paid / Payment Method</label>
+              <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl text-[11px] font-semibold text-center">
                 <label class="cursor-pointer">
                   <input type="radio" name="paymentMode" value="bank" checked class="peer sr-only">
-                  <div class="py-2 rounded-lg peer-checked:bg-white peer-checked:text-indigo-900 peer-checked:shadow-sm text-slate-600 transition-all flex items-center justify-center space-x-1.5">
+                  <div class="py-2 px-1 rounded-lg peer-checked:bg-white peer-checked:text-indigo-900 peer-checked:shadow-xs text-slate-600 transition-all flex flex-col sm:flex-row items-center justify-center gap-1 truncate">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     <span>Bank / UPI</span>
                   </div>
                 </label>
                 <label class="cursor-pointer">
                   <input type="radio" name="paymentMode" value="card" class="peer sr-only">
-                  <div class="py-2 rounded-lg peer-checked:bg-rose-500 peer-checked:text-white peer-checked:shadow-sm text-slate-600 transition-all flex items-center justify-center space-x-1.5">
+                  <div class="py-2 px-1 rounded-lg peer-checked:bg-rose-500 peer-checked:text-white peer-checked:shadow-xs text-slate-600 transition-all flex flex-col sm:flex-row items-center justify-center gap-1 truncate">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                     <span>Credit Card</span>
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="paymentMode" value="roommate" class="peer sr-only">
+                  <div class="py-2 px-1 rounded-lg peer-checked:bg-amber-500 peer-checked:text-white peer-checked:shadow-xs text-slate-600 transition-all flex flex-col sm:flex-row items-center justify-center gap-1 truncate">
+                    <span>👥 Roommate Paid</span>
                   </div>
                 </label>
               </div>
@@ -205,10 +228,24 @@
               </select>
             </div>
 
+            <!-- Roommate Paid Information (Conditional when Roommate Paid is selected) -->
+            <div id="roommate-payer-row" class="hidden bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 space-y-2">
+              <div class="flex items-center space-x-1.5 text-xs font-semibold text-amber-900">
+                <span>ℹ️ Roommate Paid for You</span>
+              </div>
+              <p class="text-[11px] text-amber-800 leading-tight">
+                Your bank balance won't change today, but your share will be counted in your spends and added to what you owe your roommate.
+              </p>
+              <div>
+                <label for="tx-roommate-name" class="block text-[11px] font-medium text-amber-900 mb-1">Who paid the bill?</label>
+                <input type="text" id="tx-roommate-name" placeholder="e.g. Rahul, Aman" class="w-full px-2.5 py-1.5 text-xs bg-white border border-amber-200 rounded-lg text-slate-800">
+              </div>
+            </div>
+
             <!-- Amount & Date -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label for="tx-amount" class="block text-xs font-medium text-slate-600 mb-1">Total Bill Paid (₹) *</label>
+                <label for="tx-amount" id="tx-amount-label" class="block text-xs font-medium text-slate-600 mb-1">Total Bill Paid (₹) *</label>
                 <div class="relative">
                   <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-medium">₹</span>
                   <input type="number" id="tx-amount" step="any" min="0.01" required placeholder="1000" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900 transition-colors">
@@ -220,8 +257,8 @@
               </div>
             </div>
 
-            <!-- SPLITWISE / ROOMMATES SECTION -->
-            <div class="bg-indigo-50/60 border border-indigo-100 rounded-xl p-3 space-y-2.5">
+            <!-- SPLITWISE / ROOMMATES SECTION (When I pay upfront) -->
+            <div id="i-paid-split-wrapper" class="bg-indigo-50/60 border border-indigo-100 rounded-xl p-3 space-y-2.5">
               <div class="flex items-center justify-between">
                 <label class="flex items-center space-x-2 cursor-pointer">
                   <input type="checkbox" id="tx-is-split" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
@@ -401,6 +438,26 @@
           </div>
         </div>
 
+        <!-- Security & Passcode Configuration -->
+        <div class="pt-3 border-t border-slate-100 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-xs font-semibold text-slate-800">Passcode Protection</label>
+              <p class="text-[11px] text-slate-400">Lock app on launch and protect reset action</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="settings-passcode-toggle" class="sr-only peer">
+              <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+            </label>
+          </div>
+
+          <div id="settings-pin-container" class="hidden">
+            <label for="settings-pin-input" class="block text-xs font-medium text-slate-700 mb-1">Set 4-Digit Passcode PIN</label>
+            <input type="password" maxlength="6" id="settings-pin-input" placeholder="e.g. 1234" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-mono tracking-widest text-slate-900">
+            <p class="text-[10px] text-slate-400 mt-1">Remember this PIN. It will be required to unlock SpendFlow and to reset data.</p>
+          </div>
+        </div>
+
         <div class="pt-3 flex items-center justify-end space-x-2 border-t border-slate-100">
           <button type="button" id="cancel-settings-btn" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
             Cancel
@@ -413,13 +470,13 @@
     </div>
   </div>
 
-  <!-- 2. Pay Credit Card Bill Modal -->
+  <!-- 2. Pay CC Bill Modal -->
   <div id="pay-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-xl space-y-5">
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-base font-bold text-slate-900">Pay Credit Card Bill</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Clears card debt by deducting from Bank balance</p>
+          <p class="text-xs text-slate-500 mt-0.5">Deduct from bank balance and pay down card debt</p>
         </div>
         <button id="close-pay-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -427,29 +484,30 @@
       </div>
 
       <form id="pay-form" class="space-y-4">
-        <!-- Select Which Card to Pay -->
         <div>
-          <label for="modal-pay-card-select" class="block text-xs font-semibold text-slate-700 mb-1">Which Card are you paying?</label>
-          <select id="modal-pay-card-select" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-medium text-slate-900">
-            <!-- Injected via JS -->
+          <label for="modal-pay-card-select" class="block text-xs font-semibold text-slate-700 mb-1">
+            Choose Card to Settle
+          </label>
+          <select id="modal-pay-card-select" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800 font-medium">
+            <!-- Populated via JS -->
           </select>
         </div>
 
         <div class="bg-rose-50 border border-rose-100 rounded-xl p-3.5 flex items-center justify-between">
-          <span class="text-xs font-medium text-rose-800">Selected Card Outstanding</span>
-          <span id="modal-pay-cc-current" class="text-sm font-bold text-rose-700">₹0</span>
+          <span class="text-xs font-medium text-rose-800">Current Outstanding for this card</span>
+          <span id="modal-pay-cc-current" class="text-sm font-bold text-rose-600">₹0</span>
         </div>
 
         <div>
           <label for="pay-amount" class="block text-xs font-semibold text-slate-700 mb-1">
-            Payment Amount (₹) *
+            Amount to Pay (₹) *
           </label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">₹</span>
-            <input type="number" id="pay-amount" step="any" min="0.01" required placeholder="0.00" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900">
+            <input type="number" id="pay-amount" step="any" min="0.01" required placeholder="5000" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900">
           </div>
           <div class="flex items-center justify-between mt-1.5">
-            <span class="text-[11px] text-slate-400">Debited from Bank account</span>
+            <span class="text-[11px] text-slate-400">Debited from bank balance</span>
             <button type="button" id="pay-full-due-btn" class="text-[11px] font-semibold text-indigo-600 hover:underline">
               Pay Full Due
             </button>
@@ -473,22 +531,22 @@
     </div>
   </div>
 
-  <!-- 3. Receive Roommate Splitwise Repayment Modal -->
+  <!-- 3. Receive Splitwise Repayment Modal -->
   <div id="receive-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-xl space-y-5">
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-base font-bold text-slate-900">Receive Splitwise Repayment</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Roommate sent money back via UPI to your bank</p>
+          <p class="text-xs text-slate-500 mt-0.5">Credit money back into bank and reduce amount owed to you</p>
         </div>
         <button id="close-receive-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3.5 flex items-center justify-between">
-        <span class="text-xs font-medium text-indigo-800">Total Currently Owed to You</span>
-        <span id="modal-receive-owed-current" class="text-sm font-bold text-indigo-700">₹0</span>
+      <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3.5 flex items-center justify-between">
+        <span class="text-xs font-medium text-emerald-800">Roommates currently owe you</span>
+        <span id="modal-receive-owed-current" class="text-sm font-bold text-emerald-700">₹0</span>
       </div>
 
       <form id="receive-form" class="space-y-4">
@@ -501,7 +559,7 @@
             <input type="number" id="receive-amount" step="any" min="0.01" required placeholder="750" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900">
           </div>
           <div class="flex items-center justify-between mt-1.5">
-            <span class="text-[11px] text-slate-400">Adds back to Bank balance</span>
+            <span class="text-[11px] text-slate-400">Deposits directly into Bank balance</span>
             <button type="button" id="receive-full-owed-btn" class="text-[11px] font-semibold text-indigo-600 hover:underline">
               Receive Full Owed
             </button>
@@ -510,11 +568,11 @@
 
         <div>
           <label for="receive-desc" class="block text-xs font-semibold text-slate-700 mb-1">Note / Who paid?</label>
-          <input type="text" id="receive-desc" placeholder="e.g. Rahul UPI settlement for restaurant" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800">
+          <input type="text" id="receive-desc" placeholder="e.g. Rahul & Aman paid back dinner via UPI" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800">
         </div>
 
         <div>
-          <label for="receive-date" class="block text-xs font-semibold text-slate-700 mb-1">Date</label>
+          <label for="receive-date" class="block text-xs font-semibold text-slate-700 mb-1">Date Received</label>
           <input type="date" id="receive-date" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800">
         </div>
 
@@ -523,14 +581,94 @@
             Cancel
           </button>
           <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-sm">
-            Record Repayment
+            Record Inflow
           </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- 4. Confirmation Dialog (Strictly no alert/confirm) -->
+  <!-- 4. Settle Roommate Debt Modal (Paying Roommate Back via UPI) -->
+  <div id="settle-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-xl space-y-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Settle Roommate Debt</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Pay back your share to roommate via UPI from Bank</p>
+        </div>
+        <button id="close-settle-modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="bg-amber-50 border border-amber-100 rounded-xl p-3.5 flex items-center justify-between">
+        <span class="text-xs font-medium text-amber-800">Total You Currently Owe Roommates</span>
+        <span id="modal-settle-you-owe-current" class="text-sm font-bold text-amber-700">₹0</span>
+      </div>
+
+      <form id="settle-form" class="space-y-4">
+        <div>
+          <label for="settle-amount" class="block text-xs font-semibold text-slate-700 mb-1">
+            Amount Paid to Roommate (₹) *
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">₹</span>
+            <input type="number" id="settle-amount" step="any" min="0.01" required placeholder="100" class="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 font-semibold text-slate-900">
+          </div>
+          <div class="flex items-center justify-between mt-1.5">
+            <span class="text-[11px] text-slate-400">Deducts from Bank balance</span>
+            <button type="button" id="settle-full-debt-btn" class="text-[11px] font-semibold text-indigo-600 hover:underline">
+              Settle Full Owed
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label for="settle-desc" class="block text-xs font-semibold text-slate-700 mb-1">Who did you pay? / Note</label>
+          <input type="text" id="settle-desc" placeholder="e.g. Paid Rahul via GPay for dinner" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800">
+        </div>
+
+        <div>
+          <label for="settle-date" class="block text-xs font-semibold text-slate-700 mb-1">Payment Date</label>
+          <input type="date" id="settle-date" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-slate-800">
+        </div>
+
+        <div class="pt-2 flex items-center justify-end space-x-2">
+          <button type="button" id="cancel-settle-btn" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition shadow-sm">
+            Record Settlement
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. App Passcode Full Screen Lock Screen -->
+  <div id="lock-screen-modal" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-4 hidden">
+    <div class="max-w-xs w-full bg-slate-900 border border-slate-800 p-6 rounded-3xl text-center space-y-6 shadow-2xl">
+      <div class="w-14 h-14 bg-indigo-900/60 text-indigo-400 border border-indigo-700/50 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
+        🔒
+      </div>
+      <div>
+        <h2 class="text-lg font-bold text-white tracking-tight">SpendFlow Locked</h2>
+        <p class="text-xs text-slate-400 mt-1">Enter your passcode to view your finances</p>
+      </div>
+
+      <form id="lock-screen-form" class="space-y-4">
+        <div>
+          <input type="password" id="lock-screen-pin" maxlength="6" autofocus placeholder="••••" class="w-full text-center text-2xl tracking-[0.5em] py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono">
+          <p id="lock-error-msg" class="text-xs text-rose-400 mt-2 hidden">Incorrect passcode</p>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white text-sm font-semibold rounded-xl transition shadow-sm">
+          Unlock
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. Confirmation Dialog (Protected with Passcode / Keyword) -->
   <div id="confirm-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl border border-slate-200 max-w-sm w-full p-6 shadow-xl space-y-4">
       <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -542,12 +680,22 @@
           This will permanently delete all your logged spends, payments, and cards. This action cannot be reversed.
         </p>
       </div>
+
+      <!-- Security verification check inside confirmation -->
+      <div id="confirm-verification-box" class="pt-1">
+        <label id="confirm-input-label" for="confirm-security-input" class="block text-[11px] font-semibold text-slate-700 mb-1">
+          Type RESET to confirm:
+        </label>
+        <input type="text" id="confirm-security-input" class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-600 font-mono">
+        <p id="confirm-error-note" class="text-[10px] text-rose-600 mt-1 hidden">Code does not match</p>
+      </div>
+
       <div class="flex items-center justify-end space-x-2 pt-2">
         <button id="confirm-cancel-btn" class="px-3.5 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
           Cancel
         </button>
         <button id="confirm-proceed-btn" class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition">
-          Yes, Reset
+          Confirm Reset
         </button>
       </div>
     </div>
@@ -568,6 +716,8 @@
 
     const DEFAULT_DATA = {
       initialBankBalance: 50000,
+      passcodeEnabled: false,
+      passcode: '',
       creditCards: [
         { id: 'card_icici', name: 'ICICI Credit Card', initialDue: 0 },
         { id: 'card_kotak', name: 'Kotak Credit Card', initialDue: 0 }
@@ -605,6 +755,7 @@
 
     let appData = loadData();
     let currentFilter = 'all';
+    let isAppUnlocked = sessionStorage.getItem('spendflow_unlocked') === 'true';
 
     const CATEGORY_COLORS = {
       'Food & Dining': { bg: 'bg-amber-100', text: 'text-amber-800', bar: '#f59e0b' },
@@ -615,11 +766,12 @@
       'Miscellaneous': { bg: 'bg-slate-100', text: 'text-slate-800', bar: '#64748b' },
       'CC Bill Payment': { bg: 'bg-indigo-100', text: 'text-indigo-800', bar: '#6366f1' },
       'Repayment Received': { bg: 'bg-emerald-100', text: 'text-emerald-800', bar: '#10b981' },
+      'Roommate Settle': { bg: 'bg-amber-100', text: 'text-amber-800', bar: '#f59e0b' },
       'Default': { bg: 'bg-teal-100', text: 'text-teal-800', bar: '#14b8a6' }
     };
 
     /**
-     * Storage Helpers (With auto-migration for ICICI + Kotak)
+     * Storage Helpers
      */
     function loadData() {
       try {
@@ -627,7 +779,6 @@
         if (stored) {
           const parsed = JSON.parse(stored);
           
-          // Migrate credit cards if old schema existed
           let creditCards = parsed.creditCards;
           if (!Array.isArray(creditCards) || creditCards.length === 0) {
             creditCards = [
@@ -637,7 +788,6 @@
           }
 
           const transactions = (parsed.transactions || []).map(tx => {
-            // Assign default card if missing
             if (tx.paymentMode === 'card' && !tx.cardId) {
               tx.cardId = 'card_icici';
             }
@@ -651,6 +801,8 @@
 
           return {
             initialBankBalance: Number(parsed.initialBankBalance) || 0,
+            passcodeEnabled: !!parsed.passcodeEnabled,
+            passcode: parsed.passcode || '',
             creditCards,
             transactions
           };
@@ -672,22 +824,19 @@
 
     /**
      * Core Financial Ledger Calculations
-     * - Bank Balance = Initial Bank - (Direct Bank Spends + CC Payments) + (Roommate Repayments Received)
-     * - Card Outstandings calculated individually per card
-     * - Owed to You = Total Splitwise debt created - Total Roommate Repayments received
-     * - Real Spends = User's personal share of split expenses + full amount of personal non-split expenses
      */
     function calculateLedger() {
       let totalBankSpends = 0;
       let totalCardSpends = 0;
       let totalCcPaymentsFromBank = 0;
       let totalRepaymentsReceivedIntoBank = 0;
+      let totalSettledToRoommatesFromBank = 0;
 
       let totalGrossOutflow = 0;
       let myTruePersonalSpends = 0;
-      let totalOwedCreated = 0;
+      let totalOwedToMeCreated = 0;
+      let totalYouOweCreated = 0;
 
-      // Track individual card balances
       const cardMap = {};
       appData.creditCards.forEach(c => {
         cardMap[c.id] = {
@@ -709,13 +858,17 @@
           }
         } else if (tx.type === 'roommate_repayment') {
           totalRepaymentsReceivedIntoBank += amt;
+        } else if (tx.type === 'roommate_settlement') {
+          totalSettledToRoommatesFromBank += amt;
+        } else if (tx.paymentMode === 'roommate' || tx.type === 'roommate_paid') {
+          myTruePersonalSpends += amt;
+          totalYouOweCreated += amt;
         } else {
-          // Normal or Split Expense
           totalGrossOutflow += amt;
 
           if (tx.isSplit) {
             myTruePersonalSpends += (Number(tx.myShare) || 0);
-            totalOwedCreated += (Number(tx.owedToMe) || 0);
+            totalOwedToMeCreated += (Number(tx.owedToMe) || 0);
           } else {
             myTruePersonalSpends += amt;
           }
@@ -741,10 +894,12 @@
       });
 
       // Current Bank Balance
-      const currentBankBalance = appData.initialBankBalance - totalBankSpends - totalCcPaymentsFromBank + totalRepaymentsReceivedIntoBank;
+      const currentBankBalance = appData.initialBankBalance - totalBankSpends - totalCcPaymentsFromBank - totalSettledToRoommatesFromBank + totalRepaymentsReceivedIntoBank;
 
-      // Owed to You (Splitwise receivable net)
-      const currentOwedToMe = Math.max(0, totalOwedCreated - totalRepaymentsReceivedIntoBank);
+      // Splitwise Balances
+      const currentOwedToMe = Math.max(0, totalOwedToMeCreated - totalRepaymentsReceivedIntoBank);
+      const currentYouOwe = Math.max(0, totalYouOweCreated - totalSettledToRoommatesFromBank);
+      const netSplit = currentOwedToMe - currentYouOwe;
 
       return {
         initialBank: appData.initialBankBalance,
@@ -753,7 +908,9 @@
         totalGrossOutflow,
         totalCreditCardOutstanding,
         cardMap,
-        currentOwedToMe
+        currentOwedToMe,
+        currentYouOwe,
+        netSplit
       };
     }
 
@@ -770,6 +927,8 @@
       const toast = document.getElementById('toast');
       const text = document.getElementById('toast-text');
       const icon = document.getElementById('toast-icon');
+
+      if (!toast) return;
 
       text.textContent = message;
       if (type === 'error') {
@@ -788,6 +947,64 @@
     }
 
     /**
+     * Passcode Lock Screen Functions
+     */
+    function checkAppSecurity() {
+      const lockModal = document.getElementById('lock-screen-modal');
+      const lockBtn = document.getElementById('manual-lock-btn');
+
+      if (!lockModal || !lockBtn) return;
+
+      if (appData.passcodeEnabled && appData.passcode) {
+        lockBtn.classList.remove('hidden');
+        lockBtn.classList.add('inline-flex');
+
+        if (!isAppUnlocked) {
+          lockModal.classList.remove('hidden');
+          const pinEl = document.getElementById('lock-screen-pin');
+          if (pinEl) {
+            pinEl.value = '';
+            pinEl.focus();
+          }
+          const errEl = document.getElementById('lock-error-msg');
+          if (errEl) errEl.classList.add('hidden');
+        } else {
+          lockModal.classList.add('hidden');
+        }
+      } else {
+        lockBtn.classList.add('hidden');
+        lockBtn.classList.remove('inline-flex');
+        lockModal.classList.add('hidden');
+      }
+    }
+
+    const lockForm = document.getElementById('lock-screen-form');
+    if (lockForm) {
+      lockForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const entered = document.getElementById('lock-screen-pin').value;
+        if (entered === appData.passcode) {
+          isAppUnlocked = true;
+          sessionStorage.setItem('spendflow_unlocked', 'true');
+          document.getElementById('lock-screen-modal').classList.add('hidden');
+          showToast('App unlocked');
+        } else {
+          document.getElementById('lock-error-msg').classList.remove('hidden');
+          document.getElementById('lock-screen-pin').value = '';
+        }
+      });
+    }
+
+    const manualLockBtn = document.getElementById('manual-lock-btn');
+    if (manualLockBtn) {
+      manualLockBtn.addEventListener('click', () => {
+        isAppUnlocked = false;
+        sessionStorage.removeItem('spendflow_unlocked');
+        checkAppSecurity();
+      });
+    }
+
+    /**
      * Update UI Overview
      */
     function renderOverview() {
@@ -795,51 +1012,86 @@
 
       // 1. Bank Balance
       const currentBalEl = document.getElementById('stat-current-balance');
-      currentBalEl.textContent = formatCurrency(ledger.currentBankBalance);
-      currentBalEl.className = ledger.currentBankBalance < 0 
-        ? 'text-lg sm:text-2xl font-bold text-rose-600 tracking-tight'
-        : 'text-lg sm:text-2xl font-bold text-emerald-600 tracking-tight';
+      if (currentBalEl) {
+        currentBalEl.textContent = formatCurrency(ledger.currentBankBalance);
+        currentBalEl.className = ledger.currentBankBalance < 0 
+          ? 'text-lg sm:text-2xl font-bold text-rose-600 tracking-tight'
+          : 'text-lg sm:text-2xl font-bold text-emerald-600 tracking-tight';
+      }
       
-      document.getElementById('stat-start-balance-note').textContent = `Starting: ${formatCurrency(ledger.initialBank)}`;
+      const startNoteEl = document.getElementById('stat-start-balance-note');
+      if (startNoteEl) startNoteEl.textContent = `Starting: ${formatCurrency(ledger.initialBank)}`;
 
       // 2. Real Spends
-      document.getElementById('stat-total-spent').textContent = formatCurrency(ledger.myTruePersonalSpends);
-      document.getElementById('stat-gross-outflow-note').textContent = `Total paid upfront: ${formatCurrency(ledger.totalGrossOutflow)}`;
+      const totalSpentEl = document.getElementById('stat-total-spent');
+      if (totalSpentEl) totalSpentEl.textContent = formatCurrency(ledger.myTruePersonalSpends);
+
+      const grossOutflowEl = document.getElementById('stat-gross-outflow-note');
+      if (grossOutflowEl) grossOutflowEl.textContent = `Total paid upfront: ${formatCurrency(ledger.totalGrossOutflow)}`;
 
       // 3. CC Outstanding + Breakdown badges
       const ccDueEl = document.getElementById('stat-cc-due');
-      ccDueEl.textContent = formatCurrency(ledger.totalCreditCardOutstanding);
-      ccDueEl.className = ledger.totalCreditCardOutstanding > 0 
-        ? 'text-lg sm:text-2xl font-bold text-rose-600 tracking-tight' 
-        : 'text-lg sm:text-2xl font-bold text-slate-800 tracking-tight';
+      if (ccDueEl) {
+        ccDueEl.textContent = formatCurrency(ledger.totalCreditCardOutstanding);
+        ccDueEl.className = ledger.totalCreditCardOutstanding > 0 
+          ? 'text-lg sm:text-2xl font-bold text-rose-600 tracking-tight' 
+          : 'text-lg sm:text-2xl font-bold text-slate-800 tracking-tight';
+      }
 
       const ccBreakdownEl = document.getElementById('stat-cc-breakdown');
-      ccBreakdownEl.innerHTML = '';
-      Object.keys(ledger.cardMap).forEach(id => {
-        const c = ledger.cardMap[id];
-        const span = document.createElement('span');
-        span.className = 'px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-medium';
-        span.textContent = `${c.name}: ${formatCurrency(c.currentOutstanding)}`;
-        ccBreakdownEl.appendChild(span);
-      });
+      if (ccBreakdownEl) {
+        ccBreakdownEl.innerHTML = '';
+        Object.keys(ledger.cardMap).forEach(id => {
+          const c = ledger.cardMap[id];
+          const span = document.createElement('span');
+          span.className = 'px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-medium';
+          span.textContent = `${c.name}: ${formatCurrency(c.currentOutstanding)}`;
+          ccBreakdownEl.appendChild(span);
+        });
+      }
 
-      // 4. Roommates Owe You
-      document.getElementById('stat-owed-to-me').textContent = formatCurrency(ledger.currentOwedToMe);
-      document.getElementById('modal-receive-owed-current').textContent = formatCurrency(ledger.currentOwedToMe);
+      // 4. Splitwise Ledger
+      const splitNetEl = document.getElementById('stat-split-net');
+      if (splitNetEl) {
+        if (ledger.netSplit > 0) {
+          splitNetEl.textContent = `+${formatCurrency(ledger.netSplit)} Net`;
+          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-emerald-600 tracking-tight';
+        } else if (ledger.netSplit < 0) {
+          splitNetEl.textContent = `-${formatCurrency(Math.abs(ledger.netSplit))} Net`;
+          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-rose-600 tracking-tight';
+        } else {
+          splitNetEl.textContent = '₹0 Settled';
+          splitNetEl.className = 'text-lg sm:text-2xl font-bold text-slate-800 tracking-tight';
+        }
+      }
 
-      // Populate Card Selectors in Form and Modals
+      const owedToMePill = document.getElementById('stat-owed-to-me-pill');
+      if (owedToMePill) owedToMePill.textContent = `They owe: ${formatCurrency(ledger.currentOwedToMe)}`;
+
+      const youOwePill = document.getElementById('stat-you-owe-pill');
+      if (youOwePill) youOwePill.textContent = `You owe: ${formatCurrency(ledger.currentYouOwe)}`;
+
+      const modalRecOwed = document.getElementById('modal-receive-owed-current');
+      if (modalRecOwed) modalRecOwed.textContent = formatCurrency(ledger.currentOwedToMe);
+
+      const modalSettleOwe = document.getElementById('modal-settle-you-owe-current');
+      if (modalSettleOwe) modalSettleOwe.textContent = formatCurrency(ledger.currentYouOwe);
+
       populateCardDropdowns();
+      checkAppSecurity();
     }
 
     function populateCardDropdowns() {
       const txCardSelect = document.getElementById('tx-card-id');
       const payCardSelect = document.getElementById('modal-pay-card-select');
 
+      if (!txCardSelect) return;
+
       const currentTxVal = txCardSelect.value;
-      const currentPayVal = payCardSelect.value;
+      const currentPayVal = payCardSelect ? payCardSelect.value : null;
 
       txCardSelect.innerHTML = '';
-      payCardSelect.innerHTML = '';
+      if (payCardSelect) payCardSelect.innerHTML = '';
 
       appData.creditCards.forEach(c => {
         const opt1 = document.createElement('option');
@@ -847,43 +1099,53 @@
         opt1.textContent = c.name;
         txCardSelect.appendChild(opt1);
 
-        const opt2 = document.createElement('option');
-        opt2.value = c.id;
-        opt2.textContent = c.name;
-        payCardSelect.appendChild(opt2);
+        if (payCardSelect) {
+          const opt2 = document.createElement('option');
+          opt2.value = c.id;
+          opt2.textContent = c.name;
+          payCardSelect.appendChild(opt2);
+        }
       });
 
       if (currentTxVal) txCardSelect.value = currentTxVal;
-      if (currentPayVal) payCardSelect.value = currentPayVal;
+      if (payCardSelect && currentPayVal) payCardSelect.value = currentPayVal;
       updatePayModalCardBalance();
     }
 
     function updatePayModalCardBalance() {
+      const payCardSelect = document.getElementById('modal-pay-card-select');
+      const modalPayCurrent = document.getElementById('modal-pay-cc-current');
+      if (!payCardSelect || !modalPayCurrent) return;
+
       const ledger = calculateLedger();
-      const selectedCardId = document.getElementById('modal-pay-card-select').value;
+      const selectedCardId = payCardSelect.value;
       const cardInfo = ledger.cardMap[selectedCardId];
       const due = cardInfo ? cardInfo.currentOutstanding : 0;
-      document.getElementById('modal-pay-cc-current').textContent = formatCurrency(due);
+      modalPayCurrent.textContent = formatCurrency(due);
     }
 
-    document.getElementById('modal-pay-card-select').addEventListener('change', updatePayModalCardBalance);
+    const paySelectEl = document.getElementById('modal-pay-card-select');
+    if (paySelectEl) {
+      paySelectEl.addEventListener('change', updatePayModalCardBalance);
+    }
 
     /**
      * Render Transactions List
      */
     function renderTransactions() {
       const container = document.getElementById('transactions-container');
+      if (!container) return;
       container.innerHTML = '';
 
       let list = [...appData.transactions];
 
       // Filtering
       if (currentFilter === 'bank') {
-        list = list.filter(t => t.paymentMode === 'bank' || t.type === 'cc_payment' || t.type === 'roommate_repayment');
+        list = list.filter(t => t.paymentMode === 'bank' || t.type === 'cc_payment' || t.type === 'roommate_repayment' || t.type === 'roommate_settlement');
       } else if (currentFilter === 'card') {
         list = list.filter(t => t.paymentMode === 'card');
       } else if (currentFilter === 'split') {
-        list = list.filter(t => t.isSplit || t.type === 'roommate_repayment');
+        list = list.filter(t => t.isSplit || t.paymentMode === 'roommate' || t.type === 'roommate_repayment' || t.type === 'roommate_settlement');
       }
 
       list.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -895,7 +1157,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <p class="text-sm font-medium">No transactions found</p>
-            <p class="text-xs text-slate-400">Log an expense or receive a split repayment</p>
+            <p class="text-xs text-slate-400">Log an expense or settle a roommate split</p>
           </div>
         `;
         return;
@@ -911,11 +1173,18 @@
         const isCCExpense = tx.paymentMode === 'card' && tx.type !== 'cc_payment';
         const isBillPay = tx.type === 'cc_payment';
         const isRepayment = tx.type === 'roommate_repayment';
+        const isSettlement = tx.type === 'roommate_settlement';
+        const isRoommatePaid = tx.paymentMode === 'roommate' || tx.type === 'roommate_paid';
         const config = CATEGORY_COLORS[tx.category] || CATEGORY_COLORS['Default'];
 
         let badgeSource = '';
         if (isRepayment) {
           badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Repayment Inflow</span>`;
+        } else if (isSettlement) {
+          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">Debt Settled</span>`;
+        } else if (isRoommatePaid) {
+          const payer = tx.roommateName ? escapeHtml(tx.roommateName) : 'Roommate';
+          badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">${payer} Paid (You Owe)</span>`;
         } else if (isBillPay) {
           const cardName = cardLookup[tx.cardId] || 'Card';
           badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">CC Payment (${escapeHtml(cardName)})</span>`;
@@ -926,7 +1195,7 @@
           badgeSource = `<span class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">Bank / UPI</span>`;
         }
 
-        const catBadge = !isRepayment && !isBillPay 
+        const catBadge = (!isRepayment && !isBillPay && !isSettlement)
           ? `<span class="text-[10px] font-medium px-2 py-0.5 rounded-md ${config.bg} ${config.text}">${escapeHtml(tx.category || 'General')}</span>` 
           : '';
 
@@ -941,20 +1210,30 @@
               <span class="text-indigo-600 font-semibold">${formatCurrency(tx.owedToMe)} owed back</span>
             </div>
           `;
+        } else if (isRoommatePaid) {
+          splitNotice = `
+            <div class="mt-1 flex items-center space-x-2 text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md w-fit">
+              <span>⚠️ Bank not debited • Added to your owed balance</span>
+            </div>
+          `;
         }
 
         item.innerHTML = `
           <div class="flex items-start space-x-3 min-w-0 pr-3">
-            <div class="w-8 h-8 rounded-lg ${isRepayment ? 'bg-emerald-50 text-emerald-600' : (isCCExpense ? 'bg-rose-50 text-rose-600' : (isBillPay ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-600'))} flex-shrink-0 flex items-center justify-center mt-0.5">
+            <div class="w-8 h-8 rounded-lg ${isRepayment ? 'bg-emerald-50 text-emerald-600' : (isRoommatePaid ? 'bg-amber-50 text-amber-600' : (isCCExpense ? 'bg-rose-50 text-rose-600' : (isBillPay ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-600')))} flex-shrink-0 flex items-center justify-center mt-0.5">
               ${isRepayment ? `
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              ` : (isSettlement ? `
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              ` : (isRoommatePaid ? `
+                <span class="text-xs">👥</span>
               ` : (isBillPay ? `
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
               ` : (isCCExpense ? `
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
               ` : `
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-              `))}
+              `))))}
             </div>
 
             <div class="min-w-0">
@@ -969,7 +1248,7 @@
           </div>
 
           <div class="flex items-center space-x-2 flex-shrink-0">
-            <span class="text-xs sm:text-sm font-bold ${isRepayment ? 'text-emerald-600' : (isCCExpense ? 'text-rose-600' : 'text-slate-900')}">
+            <span class="text-xs sm:text-sm font-bold ${isRepayment ? 'text-emerald-600' : (isRoommatePaid ? 'text-amber-600' : (isCCExpense ? 'text-rose-600' : 'text-slate-900'))}">
               ${isRepayment ? '+' : '-'}${formatCurrency(tx.amount)}
             </span>
             <button data-delete-id="${tx.id}" title="Delete transaction" class="w-7 h-7 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition opacity-60 sm:opacity-0 group-hover:opacity-100">
@@ -990,13 +1269,17 @@
       const breakdownList = document.getElementById('breakdown-list');
       const breakdownTotal = document.getElementById('breakdown-total');
 
+      if (!breakdownBar || !breakdownList || !breakdownTotal) return;
+
       const categoryTotals = {};
       let totalMySpends = 0;
 
       appData.transactions.forEach(tx => {
-        if (tx.type !== 'cc_payment' && tx.type !== 'roommate_repayment') {
+        if (tx.type !== 'cc_payment' && tx.type !== 'roommate_repayment' && tx.type !== 'roommate_settlement') {
           const cat = tx.category || 'Miscellaneous';
-          const amt = tx.isSplit ? (Number(tx.myShare) || 0) : (Number(tx.amount) || 0);
+          const amt = tx.paymentMode === 'roommate' 
+            ? (Number(tx.amount) || 0) 
+            : (tx.isSplit ? (Number(tx.myShare) || 0) : (Number(tx.amount) || 0));
           categoryTotals[cat] = (categoryTotals[cat] || 0) + amt;
           totalMySpends += amt;
         }
@@ -1067,14 +1350,30 @@
      * UI Event Handlers
      */
 
-    // Toggle Credit Card Dropdown based on payment mode
+    // Toggle Payment Mode
+    const cardRow = document.getElementById('card-selection-row');
+    const roommateRow = document.getElementById('roommate-payer-row');
+    const iPaidSplitWrapper = document.getElementById('i-paid-split-wrapper');
+    const amountLabel = document.getElementById('tx-amount-label');
+
     document.querySelectorAll('input[name="paymentMode"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
-        const cardRow = document.getElementById('card-selection-row');
-        if (e.target.value === 'card') {
-          cardRow.classList.remove('hidden');
+        const mode = e.target.value;
+        if (mode === 'card') {
+          if (cardRow) cardRow.classList.remove('hidden');
+          if (roommateRow) roommateRow.classList.add('hidden');
+          if (iPaidSplitWrapper) iPaidSplitWrapper.classList.remove('hidden');
+          if (amountLabel) amountLabel.textContent = 'Total Bill Paid (₹) *';
+        } else if (mode === 'roommate') {
+          if (cardRow) cardRow.classList.add('hidden');
+          if (roommateRow) roommateRow.classList.remove('hidden');
+          if (iPaidSplitWrapper) iPaidSplitWrapper.classList.add('hidden');
+          if (amountLabel) amountLabel.textContent = 'My Share / Amount I Owe (₹) *';
         } else {
-          cardRow.classList.add('hidden');
+          if (cardRow) cardRow.classList.add('hidden');
+          if (roommateRow) roommateRow.classList.add('hidden');
+          if (iPaidSplitWrapper) iPaidSplitWrapper.classList.remove('hidden');
+          if (amountLabel) amountLabel.textContent = 'Total Bill Paid (₹) *';
         }
       });
     });
@@ -1087,16 +1386,20 @@
     const splitSummaryBanner = document.getElementById('split-summary-banner');
     const amountInput = document.getElementById('tx-amount');
 
-    splitCheckbox.addEventListener('change', () => {
-      if (splitCheckbox.checked) {
-        splitWrapper.classList.remove('hidden');
-        updateSplitMath();
-      } else {
-        splitWrapper.classList.add('hidden');
-      }
-    });
+    if (splitCheckbox) {
+      splitCheckbox.addEventListener('change', () => {
+        if (splitCheckbox.checked) {
+          if (splitWrapper) splitWrapper.classList.remove('hidden');
+          updateSplitMath();
+        } else {
+          if (splitWrapper) splitWrapper.classList.add('hidden');
+        }
+      });
+    }
 
     function updateSplitMath(source = 'count') {
+      if (!amountInput || !splitCountInput || !myShareInput || !splitSummaryBanner) return;
+
       const total = parseFloat(amountInput.value) || 0;
       let count = parseInt(splitCountInput.value) || 1;
       if (count < 1) count = 1;
@@ -1116,103 +1419,139 @@
       `;
     }
 
-    amountInput.addEventListener('input', () => updateSplitMath('count'));
-    splitCountInput.addEventListener('input', () => updateSplitMath('count'));
-    myShareInput.addEventListener('input', () => updateSplitMath('share'));
+    if (amountInput) amountInput.addEventListener('input', () => updateSplitMath('count'));
+    if (splitCountInput) splitCountInput.addEventListener('input', () => updateSplitMath('count'));
+    if (myShareInput) myShareInput.addEventListener('input', () => updateSplitMath('share'));
 
     // Custom Category Toggle
     const categorySelect = document.getElementById('tx-category');
     const customCategoryWrapper = document.getElementById('custom-category-wrapper');
     const customCategoryInput = document.getElementById('tx-custom-category');
 
-    categorySelect.addEventListener('change', (e) => {
-      if (e.target.value === '__custom__') {
-        customCategoryWrapper.classList.remove('hidden');
-        customCategoryInput.focus();
-      } else {
-        customCategoryWrapper.classList.add('hidden');
-      }
-    });
+    if (categorySelect) {
+      categorySelect.addEventListener('change', (e) => {
+        if (e.target.value === '__custom__') {
+          if (customCategoryWrapper) customCategoryWrapper.classList.remove('hidden');
+          if (customCategoryInput) customCategoryInput.focus();
+        } else {
+          if (customCategoryWrapper) customCategoryWrapper.classList.add('hidden');
+        }
+      });
+    }
 
     // Add Expense Submit
-    document.getElementById('expense-form').addEventListener('submit', (e) => {
-      e.preventDefault();
+    const expenseForm = document.getElementById('expense-form');
+    if (expenseForm) {
+      expenseForm.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-      const amount = parseFloat(amountInput.value);
-      if (isNaN(amount) || amount <= 0) {
-        showToast('Please enter a valid amount', 'error');
-        return;
-      }
+        const amount = parseFloat(amountInput.value);
+        if (isNaN(amount) || amount <= 0) {
+          showToast('Please enter a valid amount', 'error');
+          return;
+        }
 
-      const paymentMode = document.querySelector('input[name="paymentMode"]:checked').value;
-      const cardId = paymentMode === 'card' ? document.getElementById('tx-card-id').value : null;
-      const date = document.getElementById('tx-date').value || new Date().toISOString().split('T')[0];
-      const desc = document.getElementById('tx-desc').value.trim() || 'Expense';
-      
-      let category = categorySelect.value;
-      if (category === '__custom__') {
-        category = customCategoryInput.value.trim() || 'Custom';
-      }
+        const modeEl = document.querySelector('input[name="paymentMode"]:checked');
+        const paymentMode = modeEl ? modeEl.value : 'bank';
+        const cardId = paymentMode === 'card' ? document.getElementById('tx-card-id').value : null;
+        const date = document.getElementById('tx-date').value || new Date().toISOString().split('T')[0];
+        const desc = document.getElementById('tx-desc').value.trim() || 'Expense';
+        
+        let category = categorySelect ? categorySelect.value : 'Miscellaneous';
+        if (category === '__custom__' && customCategoryInput) {
+          category = customCategoryInput.value.trim() || 'Custom';
+        }
 
-      const isSplit = splitCheckbox.checked;
-      let myShare = amount;
-      let owedToMe = 0;
-      let splitCount = 1;
+        let newTx;
 
-      if (isSplit) {
-        splitCount = parseInt(splitCountInput.value) || 2;
-        myShare = parseFloat(myShareInput.value) || (amount / splitCount);
-        owedToMe = Math.max(0, amount - myShare);
-      }
+        if (paymentMode === 'roommate') {
+          const roommateName = document.getElementById('tx-roommate-name').value.trim() || 'Roommate';
+          newTx = {
+            id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            amount,
+            paymentMode: 'roommate',
+            roommateName,
+            date,
+            description: desc,
+            category,
+            type: 'roommate_paid',
+            isSplit: true,
+            myShare: amount,
+            owedToMe: 0
+          };
+        } else {
+          const isSplit = splitCheckbox ? splitCheckbox.checked : false;
+          let myShare = amount;
+          let owedToMe = 0;
+          let splitCount = 1;
 
-      const newTx = {
-        id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-        amount,
-        paymentMode,
-        cardId,
-        date,
-        description: desc,
-        category,
-        type: 'expense',
-        isSplit,
-        splitCount,
-        myShare,
-        owedToMe
-      };
+          if (isSplit) {
+            splitCount = parseInt(splitCountInput.value) || 2;
+            myShare = parseFloat(myShareInput.value) || (amount / splitCount);
+            owedToMe = Math.max(0, amount - myShare);
+          }
 
-      appData.transactions.unshift(newTx);
-      saveData();
-      renderAll();
+          newTx = {
+            id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            amount,
+            paymentMode,
+            cardId,
+            date,
+            description: desc,
+            category,
+            type: 'expense',
+            isSplit,
+            splitCount,
+            myShare,
+            owedToMe
+          };
+        }
 
-      // Reset Form
-      amountInput.value = '';
-      document.getElementById('tx-desc').value = '';
-      splitCheckbox.checked = false;
-      splitWrapper.classList.add('hidden');
-      myShareInput.value = '';
-      if (categorySelect.value === '__custom__') {
-        customCategoryInput.value = '';
-        categorySelect.value = 'Food & Dining';
-        customCategoryWrapper.classList.add('hidden');
-      }
+        appData.transactions.unshift(newTx);
+        saveData();
+        renderAll();
 
-      showToast(`Added ${isSplit ? 'Split expense' : 'Expense'} of ${formatCurrency(amount)}`);
-    });
+        // Reset Form
+        amountInput.value = '';
+        document.getElementById('tx-desc').value = '';
+        const roomNameEl = document.getElementById('tx-roommate-name');
+        if (roomNameEl) roomNameEl.value = '';
+
+        if (splitCheckbox) splitCheckbox.checked = false;
+        if (splitWrapper) splitWrapper.classList.add('hidden');
+        if (myShareInput) myShareInput.value = '';
+
+        if (categorySelect && categorySelect.value === '__custom__') {
+          if (customCategoryInput) customCategoryInput.value = '';
+          categorySelect.value = 'Food & Dining';
+          if (customCategoryWrapper) customCategoryWrapper.classList.add('hidden');
+        }
+
+        if (paymentMode === 'roommate') {
+          showToast(`Recorded: You owe ${formatCurrency(amount)}`);
+        } else {
+          showToast(`Added expense of ${formatCurrency(amount)}`);
+        }
+      });
+    }
 
     // Delete Transaction Delegation
-    document.getElementById('transactions-container').addEventListener('click', (e) => {
-      const deleteBtn = e.target.closest('[data-delete-id]');
-      if (deleteBtn) {
-        const id = deleteBtn.getAttribute('data-delete-id');
-        const txIndex = appData.transactions.findIndex(t => t.id === id);
-        if (txIndex > -1) {
-          const removed = appData.transactions.splice(txIndex, 1)[0];
-          saveData();
-          renderAll();
-          showToast(`Deleted ${formatCurrency(removed.amount)} entry`);
+    const txContainer = document.getElementById('transactions-container');
+    if (txContainer) {
+      txContainer.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('[data-delete-id]');
+        if (deleteBtn) {
+          const id = deleteBtn.getAttribute('data-delete-id');
+          const txIndex = appData.transactions.findIndex(t => t.id === id);
+          if (txIndex > -1) {
+            const removed = appData.transactions.splice(txIndex, 1)[0];
+            saveData();
+            renderAll();
+            showToast(`Deleted ${formatCurrency(removed.amount)} entry`);
+          }
         }
-      }
-    });
+      });
+    }
 
     // Filter Buttons
     document.querySelectorAll('.tx-filter-btn').forEach(btn => {
@@ -1226,15 +1565,30 @@
       });
     });
 
-    // Settings & Multiple Credit Cards Modal
+    // Settings Modal
     const settingsModal = document.getElementById('settings-modal');
     const openSettingsBtn = document.getElementById('open-settings-modal-btn');
     const closeSettingsBtn = document.getElementById('close-settings-modal');
     const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
     const modalCardsContainer = document.getElementById('modal-cards-container');
     const addCardRowBtn = document.getElementById('add-card-row-btn');
+    const passcodeToggle = document.getElementById('settings-passcode-toggle');
+    const pinContainer = document.getElementById('settings-pin-container');
+    const pinInput = document.getElementById('settings-pin-input');
+
+    if (passcodeToggle) {
+      passcodeToggle.addEventListener('change', () => {
+        if (passcodeToggle.checked) {
+          if (pinContainer) pinContainer.classList.remove('hidden');
+          if (pinInput) pinInput.focus();
+        } else {
+          if (pinContainer) pinContainer.classList.add('hidden');
+        }
+      });
+    }
 
     function renderModalCardRows() {
+      if (!modalCardsContainer) return;
       modalCardsContainer.innerHTML = '';
       appData.creditCards.forEach((c, index) => {
         const row = document.createElement('div');
@@ -1258,60 +1612,94 @@
       });
     }
 
-    addCardRowBtn.addEventListener('click', () => {
-      const newId = 'card_' + Date.now();
-      appData.creditCards.push({ id: newId, name: 'New Card', initialDue: 0 });
-      renderModalCardRows();
-    });
-
-    modalCardsContainer.addEventListener('click', (e) => {
-      const removeBtn = e.target.closest('[data-remove-card-idx]');
-      if (removeBtn) {
-        const idx = parseInt(removeBtn.getAttribute('data-remove-card-idx'));
-        if (appData.creditCards.length > 1) {
-          appData.creditCards.splice(idx, 1);
-          renderModalCardRows();
-        }
-      }
-    });
-
-    function openSettings() {
-      document.getElementById('modal-bank-balance').value = appData.initialBankBalance;
-      renderModalCardRows();
-      settingsModal.classList.remove('hidden');
+    if (addCardRowBtn) {
+      addCardRowBtn.addEventListener('click', () => {
+        const newId = 'card_' + Date.now();
+        appData.creditCards.push({ id: newId, name: 'New Card', initialDue: 0 });
+        renderModalCardRows();
+      });
     }
 
-    function closeSettings() {
-      settingsModal.classList.add('hidden');
-    }
-
-    openSettingsBtn.addEventListener('click', openSettings);
-    closeSettingsBtn.addEventListener('click', closeSettings);
-    cancelSettingsBtn.addEventListener('click', closeSettings);
-
-    document.getElementById('settings-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const newBank = parseFloat(document.getElementById('modal-bank-balance').value) || 0;
-      appData.initialBankBalance = newBank;
-
-      // Collect updated cards
-      modalCardsContainer.querySelectorAll('[data-card-idx]').forEach(input => {
-        const idx = parseInt(input.getAttribute('data-card-idx'));
-        const field = input.getAttribute('data-card-field');
-        if (appData.creditCards[idx]) {
-          if (field === 'initialDue') {
-            appData.creditCards[idx].initialDue = parseFloat(input.value) || 0;
-          } else if (field === 'name') {
-            appData.creditCards[idx].name = input.value.trim() || 'Credit Card';
+    if (modalCardsContainer) {
+      modalCardsContainer.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('[data-remove-card-idx]');
+        if (removeBtn) {
+          const idx = parseInt(removeBtn.getAttribute('data-remove-card-idx'));
+          if (appData.creditCards.length > 1) {
+            appData.creditCards.splice(idx, 1);
+            renderModalCardRows();
           }
         }
       });
+    }
 
-      saveData();
-      renderAll();
-      closeSettings();
-      showToast('Settings & Credit Cards updated');
-    });
+    function openSettings() {
+      const bankEl = document.getElementById('modal-bank-balance');
+      if (bankEl) bankEl.value = appData.initialBankBalance;
+      if (passcodeToggle) passcodeToggle.checked = !!appData.passcodeEnabled;
+      if (pinInput) pinInput.value = appData.passcode || '';
+      if (pinContainer) {
+        if (appData.passcodeEnabled) {
+          pinContainer.classList.remove('hidden');
+        } else {
+          pinContainer.classList.add('hidden');
+        }
+      }
+      renderModalCardRows();
+      if (settingsModal) settingsModal.classList.remove('hidden');
+    }
+
+    function closeSettings() {
+      if (settingsModal) settingsModal.classList.add('hidden');
+    }
+
+    if (openSettingsBtn) openSettingsBtn.addEventListener('click', openSettings);
+    if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', closeSettings);
+    if (cancelSettingsBtn) cancelSettingsBtn.addEventListener('click', closeSettings);
+
+    const settingsForm = document.getElementById('settings-form');
+    if (settingsForm) {
+      settingsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newBank = parseFloat(document.getElementById('modal-bank-balance').value) || 0;
+        appData.initialBankBalance = newBank;
+
+        // Passcode settings
+        appData.passcodeEnabled = passcodeToggle ? passcodeToggle.checked : false;
+        if (appData.passcodeEnabled && pinInput) {
+          const pinVal = pinInput.value.trim();
+          if (!pinVal) {
+            showToast('Please enter a passcode PIN', 'error');
+            return;
+          }
+          appData.passcode = pinVal;
+          isAppUnlocked = true;
+          sessionStorage.setItem('spendflow_unlocked', 'true');
+        } else {
+          appData.passcode = '';
+          isAppUnlocked = true;
+        }
+
+        if (modalCardsContainer) {
+          modalCardsContainer.querySelectorAll('[data-card-idx]').forEach(input => {
+            const idx = parseInt(input.getAttribute('data-card-idx'));
+            const field = input.getAttribute('data-card-field');
+            if (appData.creditCards[idx]) {
+              if (field === 'initialDue') {
+                appData.creditCards[idx].initialDue = parseFloat(input.value) || 0;
+              } else if (field === 'name') {
+                appData.creditCards[idx].name = input.value.trim() || 'Credit Card';
+              }
+            }
+          });
+        }
+
+        saveData();
+        renderAll();
+        closeSettings();
+        showToast('Settings & Passcode saved');
+      });
+    }
 
     // Pay CC Bill Modal
     const payModal = document.getElementById('pay-modal');
@@ -1323,58 +1711,71 @@
     function openPayBill() {
       populateCardDropdowns();
       const ledger = calculateLedger();
-      const selectedCardId = document.getElementById('modal-pay-card-select').value;
-      const cardDue = ledger.cardMap[selectedCardId] ? ledger.cardMap[selectedCardId].currentOutstanding : 0;
+      const paySelect = document.getElementById('modal-pay-card-select');
+      const selectedCardId = paySelect ? paySelect.value : (appData.creditCards[0] ? appData.creditCards[0].id : null);
+      const cardDue = (selectedCardId && ledger.cardMap[selectedCardId]) ? ledger.cardMap[selectedCardId].currentOutstanding : 0;
       
-      document.getElementById('pay-amount').value = cardDue > 0 ? cardDue : '';
-      document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
-      payModal.classList.remove('hidden');
+      const payAmtEl = document.getElementById('pay-amount');
+      if (payAmtEl) payAmtEl.value = cardDue > 0 ? cardDue : '';
+
+      const payDateEl = document.getElementById('pay-date');
+      if (payDateEl) payDateEl.value = new Date().toISOString().split('T')[0];
+
+      if (payModal) payModal.classList.remove('hidden');
     }
 
     function closePayBill() {
-      payModal.classList.add('hidden');
+      if (payModal) payModal.classList.add('hidden');
     }
 
-    openPayBtn.addEventListener('click', openPayBill);
-    closePayBtn.addEventListener('click', closePayBill);
-    cancelPayBtn.addEventListener('click', closePayBill);
+    if (openPayBtn) openPayBtn.addEventListener('click', openPayBill);
+    if (closePayBtn) closePayBtn.addEventListener('click', closePayBill);
+    if (cancelPayBtn) cancelPayBtn.addEventListener('click', closePayBill);
 
-    payFullDueBtn.addEventListener('click', () => {
-      const ledger = calculateLedger();
-      const selectedCardId = document.getElementById('modal-pay-card-select').value;
-      const cardDue = ledger.cardMap[selectedCardId] ? ledger.cardMap[selectedCardId].currentOutstanding : 0;
-      document.getElementById('pay-amount').value = Math.max(0, cardDue);
-    });
+    if (payFullDueBtn) {
+      payFullDueBtn.addEventListener('click', () => {
+        const ledger = calculateLedger();
+        const paySelect = document.getElementById('modal-pay-card-select');
+        const selectedCardId = paySelect ? paySelect.value : null;
+        const cardDue = (selectedCardId && ledger.cardMap[selectedCardId]) ? ledger.cardMap[selectedCardId].currentOutstanding : 0;
+        const payAmtEl = document.getElementById('pay-amount');
+        if (payAmtEl) payAmtEl.value = Math.max(0, cardDue);
+      });
+    }
 
-    document.getElementById('pay-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const amount = parseFloat(document.getElementById('pay-amount').value);
-      if (isNaN(amount) || amount <= 0) {
-        showToast('Please enter a valid payment amount', 'error');
-        return;
-      }
+    const payForm = document.getElementById('pay-form');
+    if (payForm) {
+      payForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const amount = parseFloat(document.getElementById('pay-amount').value);
+        if (isNaN(amount) || amount <= 0) {
+          showToast('Please enter a valid payment amount', 'error');
+          return;
+        }
 
-      const cardId = document.getElementById('modal-pay-card-select').value;
-      const cardName = appData.creditCards.find(c => c.id === cardId)?.name || 'Credit Card';
-      const date = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
+        const cardSelect = document.getElementById('modal-pay-card-select');
+        const cardId = cardSelect ? cardSelect.value : null;
+        const cardName = appData.creditCards.find(c => c.id === cardId)?.name || 'Credit Card';
+        const date = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
 
-      const settlementTx = {
-        id: 'tx_pay_' + Date.now(),
-        amount,
-        paymentMode: 'bank',
-        cardId,
-        category: 'CC Bill Payment',
-        date,
-        description: `Paid ${cardName} Bill`,
-        type: 'cc_payment'
-      };
+        const settlementTx = {
+          id: 'tx_pay_' + Date.now(),
+          amount,
+          paymentMode: 'bank',
+          cardId,
+          category: 'CC Bill Payment',
+          date,
+          description: `Paid ${cardName} Bill`,
+          type: 'cc_payment'
+        };
 
-      appData.transactions.unshift(settlementTx);
-      saveData();
-      renderAll();
-      closePayBill();
-      showToast(`Settled ${cardName} bill of ${formatCurrency(amount)}`);
-    });
+        appData.transactions.unshift(settlementTx);
+        saveData();
+        renderAll();
+        closePayBill();
+        showToast(`Settled ${cardName} bill of ${formatCurrency(amount)}`);
+      });
+    }
 
     // Receive Splitwise Repayment Modal
     const receiveModal = document.getElementById('receive-modal');
@@ -1385,134 +1786,268 @@
 
     function openReceive() {
       const ledger = calculateLedger();
-      document.getElementById('receive-amount').value = ledger.currentOwedToMe > 0 ? ledger.currentOwedToMe : '';
-      document.getElementById('receive-date').value = new Date().toISOString().split('T')[0];
-      document.getElementById('receive-desc').value = '';
-      receiveModal.classList.remove('hidden');
+      const recAmtEl = document.getElementById('receive-amount');
+      if (recAmtEl) recAmtEl.value = ledger.currentOwedToMe > 0 ? ledger.currentOwedToMe : '';
+
+      const recDateEl = document.getElementById('receive-date');
+      if (recDateEl) recDateEl.value = new Date().toISOString().split('T')[0];
+
+      const recDescEl = document.getElementById('receive-desc');
+      if (recDescEl) recDescEl.value = '';
+
+      if (receiveModal) receiveModal.classList.remove('hidden');
     }
 
     function closeReceive() {
-      receiveModal.classList.add('hidden');
+      if (receiveModal) receiveModal.classList.add('hidden');
     }
 
-    openReceiveBtn.addEventListener('click', openReceive);
-    closeReceiveBtn.addEventListener('click', closeReceive);
-    cancelReceiveBtn.addEventListener('click', closeReceive);
+    if (openReceiveBtn) openReceiveBtn.addEventListener('click', openReceive);
+    if (closeReceiveBtn) closeReceiveBtn.addEventListener('click', closeReceive);
+    if (cancelReceiveBtn) cancelReceiveBtn.addEventListener('click', closeReceive);
 
-    receiveFullOwedBtn.addEventListener('click', () => {
+    if (receiveFullOwedBtn) {
+      receiveFullOwedBtn.addEventListener('click', () => {
+        const ledger = calculateLedger();
+        const recAmtEl = document.getElementById('receive-amount');
+        if (recAmtEl) recAmtEl.value = Math.max(0, ledger.currentOwedToMe);
+      });
+    }
+
+    const receiveForm = document.getElementById('receive-form');
+    if (receiveForm) {
+      receiveForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const amount = parseFloat(document.getElementById('receive-amount').value);
+        if (isNaN(amount) || amount <= 0) {
+          showToast('Please enter a valid amount', 'error');
+          return;
+        }
+
+        const date = document.getElementById('receive-date').value || new Date().toISOString().split('T')[0];
+        const desc = document.getElementById('receive-desc').value.trim() || 'Roommate Splitwise Repayment';
+
+        const repaymentTx = {
+          id: 'tx_rec_' + Date.now(),
+          amount,
+          paymentMode: 'bank',
+          category: 'Repayment Received',
+          date,
+          description: desc,
+          type: 'roommate_repayment'
+        };
+
+        appData.transactions.unshift(repaymentTx);
+        saveData();
+        renderAll();
+        closeReceive();
+        showToast(`Received ${formatCurrency(amount)} back into Bank`);
+      });
+    }
+
+    // Settle Roommate Modal (Pay Roommate Back)
+    const settleModal = document.getElementById('settle-modal');
+    const openSettleBtn = document.getElementById('open-settle-modal-btn');
+    const closeSettleBtn = document.getElementById('close-settle-modal');
+    const cancelSettleBtn = document.getElementById('cancel-settle-btn');
+    const settleFullDebtBtn = document.getElementById('settle-full-debt-btn');
+
+    function openSettle() {
       const ledger = calculateLedger();
-      document.getElementById('receive-amount').value = Math.max(0, ledger.currentOwedToMe);
-    });
+      const setAmtEl = document.getElementById('settle-amount');
+      if (setAmtEl) setAmtEl.value = ledger.currentYouOwe > 0 ? ledger.currentYouOwe : '';
 
-    document.getElementById('receive-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const amount = parseFloat(document.getElementById('receive-amount').value);
-      if (isNaN(amount) || amount <= 0) {
-        showToast('Please enter a valid amount', 'error');
-        return;
-      }
+      const setDateEl = document.getElementById('settle-date');
+      if (setDateEl) setDateEl.value = new Date().toISOString().split('T')[0];
 
-      const date = document.getElementById('receive-date').value || new Date().toISOString().split('T')[0];
-      const desc = document.getElementById('receive-desc').value.trim() || 'Roommate Splitwise Repayment';
+      const setDescEl = document.getElementById('settle-desc');
+      if (setDescEl) setDescEl.value = '';
 
-      const repaymentTx = {
-        id: 'tx_rec_' + Date.now(),
-        amount,
-        paymentMode: 'bank',
-        category: 'Repayment Received',
-        date,
-        description: desc,
-        type: 'roommate_repayment'
-      };
+      if (settleModal) settleModal.classList.remove('hidden');
+    }
 
-      appData.transactions.unshift(repaymentTx);
-      saveData();
-      renderAll();
-      closeReceive();
-      showToast(`Received ${formatCurrency(amount)} back into Bank`);
-    });
+    function closeSettle() {
+      if (settleModal) settleModal.classList.add('hidden');
+    }
 
-    // Confirmation Modal
+    if (openSettleBtn) openSettleBtn.addEventListener('click', openSettle);
+    if (closeSettleBtn) closeSettleBtn.addEventListener('click', closeSettle);
+    if (cancelSettleBtn) cancelSettleBtn.addEventListener('click', closeSettle);
+
+    if (settleFullDebtBtn) {
+      settleFullDebtBtn.addEventListener('click', () => {
+        const ledger = calculateLedger();
+        const setAmtEl = document.getElementById('settle-amount');
+        if (setAmtEl) setAmtEl.value = Math.max(0, ledger.currentYouOwe);
+      });
+    }
+
+    const settleForm = document.getElementById('settle-form');
+    if (settleForm) {
+      settleForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const amount = parseFloat(document.getElementById('settle-amount').value);
+        if (isNaN(amount) || amount <= 0) {
+          showToast('Please enter a valid amount', 'error');
+          return;
+        }
+
+        const date = document.getElementById('settle-date').value || new Date().toISOString().split('T')[0];
+        const desc = document.getElementById('settle-desc').value.trim() || 'Roommate Debt Settlement';
+
+        const settleTx = {
+          id: 'tx_settle_' + Date.now(),
+          amount,
+          paymentMode: 'bank',
+          category: 'Roommate Settle',
+          date,
+          description: desc,
+          type: 'roommate_settlement'
+        };
+
+        appData.transactions.unshift(settleTx);
+        saveData();
+        renderAll();
+        closeSettle();
+        showToast(`Paid ${formatCurrency(amount)} to roommate from Bank`);
+      });
+    }
+
+    // Protected Confirmation Modal
     const confirmModal = document.getElementById('confirm-modal');
     const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
     const confirmProceedBtn = document.getElementById('confirm-proceed-btn');
+    const confirmSecurityInput = document.getElementById('confirm-security-input');
+    const confirmInputLabel = document.getElementById('confirm-input-label');
+    const confirmErrorNote = document.getElementById('confirm-error-note');
     let pendingConfirmAction = null;
 
     function promptConfirm(callback) {
       pendingConfirmAction = callback;
-      confirmModal.classList.remove('hidden');
+      if (confirmSecurityInput) confirmSecurityInput.value = '';
+      if (confirmErrorNote) confirmErrorNote.classList.add('hidden');
+
+      if (confirmInputLabel && confirmSecurityInput) {
+        if (appData.passcodeEnabled && appData.passcode) {
+          confirmInputLabel.textContent = 'Enter your 4-digit Passcode PIN to confirm:';
+          confirmSecurityInput.type = 'password';
+          confirmSecurityInput.placeholder = '••••';
+        } else {
+          confirmInputLabel.textContent = 'Type RESET to confirm:';
+          confirmSecurityInput.type = 'text';
+          confirmSecurityInput.placeholder = 'RESET';
+        }
+      }
+
+      if (confirmModal) confirmModal.classList.remove('hidden');
+      if (confirmSecurityInput) confirmSecurityInput.focus();
     }
 
-    confirmCancelBtn.addEventListener('click', () => {
-      confirmModal.classList.add('hidden');
-      pendingConfirmAction = null;
-    });
+    if (confirmCancelBtn) {
+      confirmCancelBtn.addEventListener('click', () => {
+        if (confirmModal) confirmModal.classList.add('hidden');
+        pendingConfirmAction = null;
+      });
+    }
 
-    confirmProceedBtn.addEventListener('click', () => {
-      if (pendingConfirmAction) pendingConfirmAction();
-      confirmModal.classList.add('hidden');
-      pendingConfirmAction = null;
-    });
+    if (confirmProceedBtn) {
+      confirmProceedBtn.addEventListener('click', () => {
+        const val = confirmSecurityInput ? confirmSecurityInput.value.trim() : '';
+
+        if (appData.passcodeEnabled && appData.passcode) {
+          if (val !== appData.passcode) {
+            if (confirmErrorNote) {
+              confirmErrorNote.textContent = 'Incorrect Passcode PIN';
+              confirmErrorNote.classList.remove('hidden');
+            }
+            return;
+          }
+        } else {
+          if (val.toUpperCase() !== 'RESET') {
+            if (confirmErrorNote) {
+              confirmErrorNote.textContent = 'Please type RESET to proceed';
+              confirmErrorNote.classList.remove('hidden');
+            }
+            return;
+          }
+        }
+
+        if (pendingConfirmAction) pendingConfirmAction();
+        if (confirmModal) confirmModal.classList.add('hidden');
+        pendingConfirmAction = null;
+      });
+    }
 
     // Reset All Data
-    document.getElementById('reset-all-btn').addEventListener('click', () => {
-      promptConfirm(() => {
-        appData = {
-          initialBankBalance: 0,
-          creditCards: [
-            { id: 'card_icici', name: 'ICICI Credit Card', initialDue: 0 },
-            { id: 'card_kotak', name: 'Kotak Credit Card', initialDue: 0 }
-          ],
-          transactions: []
-        };
-        saveData();
-        renderAll();
-        showToast('All records reset successfully');
+    const resetAllBtn = document.getElementById('reset-all-btn');
+    if (resetAllBtn) {
+      resetAllBtn.addEventListener('click', () => {
+        promptConfirm(() => {
+          appData = {
+            initialBankBalance: 0,
+            passcodeEnabled: appData.passcodeEnabled,
+            passcode: appData.passcode,
+            creditCards: [
+              { id: 'card_icici', name: 'ICICI Credit Card', initialDue: 0 },
+              { id: 'card_kotak', name: 'Kotak Credit Card', initialDue: 0 }
+            ],
+            transactions: []
+          };
+          saveData();
+          renderAll();
+          showToast('All records reset successfully');
+        });
       });
-    });
+    }
 
     // Export JSON
-    document.getElementById('export-json-btn').addEventListener('click', () => {
-      const jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-      const dlAnchor = document.createElement('a');
-      dlAnchor.setAttribute("href", jsonStr);
-      dlAnchor.setAttribute("download", `spendflow_backup_${new Date().toISOString().split('T')[0]}.json`);
-      document.body.appendChild(dlAnchor);
-      dlAnchor.click();
-      dlAnchor.remove();
-      showToast('Export file downloaded');
-    });
+    const exportBtn = document.getElementById('export-json-btn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        const jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", jsonStr);
+        dlAnchor.setAttribute("download", `spendflow_backup_${new Date().toISOString().split('T')[0]}.json`);
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        dlAnchor.remove();
+        showToast('Export file downloaded');
+      });
+    }
 
     // Import JSON
-    document.getElementById('import-file-input').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+    const importInput = document.getElementById('import-file-input');
+    if (importInput) {
+      importInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        try {
-          const imported = JSON.parse(event.target.result);
-          if (typeof imported.initialBankBalance === 'number' && Array.isArray(imported.transactions)) {
-            appData = imported;
-            if (!Array.isArray(appData.creditCards)) {
-              appData.creditCards = [
-                { id: 'card_icici', name: 'ICICI Credit Card', initialDue: 0 },
-                { id: 'card_kotak', name: 'Kotak Credit Card', initialDue: 0 }
-              ];
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          try {
+            const imported = JSON.parse(event.target.result);
+            if (typeof imported.initialBankBalance === 'number' && Array.isArray(imported.transactions)) {
+              appData = imported;
+              if (!Array.isArray(appData.creditCards)) {
+                appData.creditCards = [
+                  { id: 'card_icici', name: 'ICICI Credit Card', initialDue: 0 },
+                  { id: 'card_kotak', name: 'Kotak Credit Card', initialDue: 0 }
+                ];
+              }
+              saveData();
+              renderAll();
+              showToast('Data imported successfully');
+            } else {
+              showToast('Invalid backup file format', 'error');
             }
-            saveData();
-            renderAll();
-            showToast('Data imported successfully');
-          } else {
-            showToast('Invalid backup file format', 'error');
+          } catch (err) {
+            showToast('Could not parse JSON file', 'error');
           }
-        } catch (err) {
-          showToast('Could not parse JSON file', 'error');
-        }
-      };
-      reader.readAsText(file);
-      e.target.value = '';
-    });
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+    }
 
     // Escape Key Listener
     window.addEventListener('keydown', (e) => {
@@ -1520,16 +2055,24 @@
         closeSettings();
         closePayBill();
         closeReceive();
-        confirmModal.classList.add('hidden');
+        closeSettle();
+        if (confirmModal) confirmModal.classList.add('hidden');
       }
     });
 
     // Initialize on Load
     window.onload = function() {
       const today = new Date().toISOString().split('T')[0];
-      document.getElementById('tx-date').value = today;
-      document.getElementById('pay-date').value = today;
-      document.getElementById('receive-date').value = today;
+      const txDate = document.getElementById('tx-date');
+      const payDate = document.getElementById('pay-date');
+      const recDate = document.getElementById('receive-date');
+      const setDate = document.getElementById('settle-date');
+
+      if (txDate) txDate.value = today;
+      if (payDate) payDate.value = today;
+      if (recDate) recDate.value = today;
+      if (setDate) setDate.value = today;
+
       renderAll();
     };
   </script>
