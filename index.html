@@ -1489,6 +1489,11 @@
         <label for="fx-bank" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Paid from bank</label>
         <select id="fx-bank" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 font-medium"></select>
       </div>
+      <div>
+        <label for="fx-start" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Starts from (month)</label>
+        <input type="month" id="fx-start" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 font-medium">
+        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Nothing is reserved or reminded before this month.</p>
+      </div>
       <div class="grid grid-cols-2 gap-3">
         <div id="fx-category-wrap">
           <label for="fx-category" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Category</label>
@@ -1554,6 +1559,11 @@
             <option value="UPI">Other UPI</option>
           </select>
         </div>
+      </div>
+      <div>
+        <label for="fx-quick-start" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Reminders start from</label>
+        <input type="month" id="fx-quick-start" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 font-medium">
+        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Next month by default, because this month's salaries are already given.</p>
       </div>
       <div class="flex items-center justify-end gap-2">
         <button type="button" id="fx-quick-cancel" class="px-3.5 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">Cancel</button>
@@ -1648,6 +1658,7 @@
               category: String(fp.category || 'Rent & Bills'),
               app: String(fp.app || 'NetBanking'),
               kind: fp.kind === 'salary' ? 'salary' : 'bill',
+              startYM: /^\d{4}-\d{2}$/.test(String(fp.startYM || '')) ? String(fp.startYM) : '',
               variable: Boolean(fp.variable),
               monthAmounts: (fp.monthAmounts && typeof fp.monthAmounts === 'object')
                 ? Object.fromEntries(Object.entries(fp.monthAmounts).filter(([k, val]) => /^\d{4}-\d{2}$/.test(k) && Number.isFinite(Number(val))).map(([k, val]) => [k, Number(val)]))
@@ -2045,12 +2056,13 @@
       let totalFixedMonthly = 0;
       (appData.fixedPayments || []).forEach(fp => {
         const amt = fixedAmountFor(fp, currentYM);
-        totalFixedMonthly += amt;
+        if (fixedActiveFor(fp, currentYM)) totalFixedMonthly += amt;
         const paid = appData.transactions.some(tx => tx.fixedId === fp.id && tx.date && String(tx.date).startsWith(currentYM));
         const skipped = !paid && (fp.skipped || []).includes(currentYM);
         const fbId = (fp.bankId && bankMap[fp.bankId]) ? fp.bankId : fallbackBankId;
-        if (fbId && bankMap[fbId]) bankMap[fbId].fixedCount += 1;
-        if (!paid && !skipped) {
+        const active = fixedActiveFor(fp, currentYM);
+        if (active && fbId && bankMap[fbId]) bankMap[fbId].fixedCount += 1;
+        if (active && !paid && !skipped) {
           pendingFixedThisMonth += amt;
           if (fbId && bankMap[fbId]) {
             bankMap[fbId].pendingFixedAmount += amt;
@@ -5366,7 +5378,7 @@
           const fixedRows = (appData.fixedPayments || []).map(fp => {
             const paid = appData.transactions.some(tx => tx.fixedId === fp.id && tx.date && String(tx.date).startsWith(ym));
             const skipped = !paid && (fp.skipped || []).includes(ym);
-            return [fp.name + (fp.variable ? ' (amount varies)' : ''), round2(fixedAmountFor(fp, ym)), `${getOrdinalSuffix(fp.day)} of month`, bankName(fp.bankId), fp.kind === 'salary' ? 'Salary' : canonCategory(fp.category), paid ? 'Paid this month' : (skipped ? 'Handled this month' : 'Still to pay')];
+            return [fp.name + (fp.variable ? ' (amount varies)' : ''), round2(fixedAmountFor(fp, ym)), `${getOrdinalSuffix(fp.day)} of month`, bankName(fp.bankId), fp.kind === 'salary' ? 'Salary' : canonCategory(fp.category), !fixedActiveFor(fp, ym) ? `Starts ${fp.startYM}` : (paid ? 'Paid this month' : (skipped ? 'Handled this month' : 'Still to pay'))];
           });
           r = xlTable(ws, r, ['Payment', 'Monthly amount', 'Due day', 'Bank', 'Type', 'This month'], fixedRows.length ? fixedRows : [['No fixed payments added yet', '', '', '', '', '']], { money: [1] }) + 1;
           xlSection(ws, r, 'Pending — to take back', 6); r++;
@@ -5947,6 +5959,16 @@
       return (kotak || banks[0] || {}).id || '';
     }
 
+    // A fixed payment can start in a later month (nothing is reserved or reminded before it).
+    function fixedActiveFor(fp, ym) {
+      return !fp || !fp.startYM || ym >= fp.startYM;
+    }
+    function nextMonthYM() {
+      const d = new Date();
+      const n = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`;
+    }
+
     // What a fixed payment costs this month (payments that change every month use the amount typed for that month).
     function fixedAmountFor(fp, ym) {
       if (fp && fp.variable) {
@@ -6064,6 +6086,7 @@
       document.getElementById('fx-name').value = data.name || '';
       document.getElementById('fx-amount').value = data.amount || '';
       document.getElementById('fx-kind').value = data.kind === 'salary' ? 'salary' : 'bill';
+      document.getElementById('fx-start').value = data.startYM || getCurrentYearMonth();
       document.getElementById('fx-variable').checked = Boolean(data.variable);
       document.getElementById('fx-day').value = data.day || 1;
       const bankSel = document.getElementById('fx-bank');
@@ -6120,17 +6143,19 @@
         const due = makeClampedDate(today.getFullYear(), today.getMonth(), day);
         const days = Math.round((due - today) / 86400000);
         const stat = ledger.bankMap[fp.bankId] || Object.values(ledger.bankMap)[0];
-        const short = !paid && !skipped && Boolean(stat) && stat.freeAfterSip < 0;
+        const active = fixedActiveFor(fp, ym);
+        const short = active && !paid && !skipped && Boolean(stat) && stat.freeAfterSip < 0;
         const isSalary = fp.kind === 'salary';
         const amtNow = fixedAmountFor(fp, ym);
         const typedThisMonth = Boolean(fp.variable && fp.monthAmounts && Number(fp.monthAmounts[ym]) > 0);
         const paidTx = paid ? appData.transactions.find(tx => tx.fixedId === fp.id && tx.date && String(tx.date).startsWith(ym)) : null;
         const amountLabel = fp.variable ? formatCurrency(paidTx ? paidTx.amount : amtNow) : formatCurrency(fp.amount);
         const paidLabel = `✓ Mark paid (${formatCurrency(amtNow)})`;
-        const showAmountBox = Boolean(fp.variable && !paid && !skipped);
+        const showAmountBox = Boolean(active && fp.variable && !paid && !skipped);
 
         let badge, border = 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50';
-        if (paid) badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">✓ Paid this month</span>';
+        if (!active) { badge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">Starts ${escapeHtml(monthLabel(fp.startYM, true))}</span>`; }
+        else if (paid) badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">✓ Paid this month</span>';
         else if (skipped) badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">✓ Handled this month</span>';
         else if (days < 0) { border = 'border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/30'; badge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">⏳ Was due ${escapeHtml(formatShortDate(due))} — not marked paid</span>`; }
         else if (days === 0) { border = 'border-rose-400 dark:border-rose-700 bg-rose-50/60 dark:bg-rose-950/40'; badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white animate-pulse">🚨 Due today</span>'; }
@@ -6166,7 +6191,7 @@
             ${short ? `<span class="text-[11px] font-bold text-rose-600 dark:text-rose-400 text-right">⚠️ ${escapeHtml(stat.name)} balance is short<br><span class="font-medium">Free after commitments: ${formatCurrency(stat.freeAfterSip)}</span></span>` : ''}
           </div>
           <div class="flex items-center flex-wrap gap-2 pt-1">
-            ${(!paid && !skipped) ? `
+            ${(active && !paid && !skipped) ? `
               <button type="button" data-fx-paid="${escapeHtml(fp.id)}" class="flex-1 min-w-[8rem] py-1.5 px-2.5 rounded-lg text-[11px] font-bold bg-slate-900 dark:bg-indigo-600 hover:opacity-90 text-white shadow-sm transition text-center">${paidLabel}</button>
               <button type="button" data-fx-skip="${escapeHtml(fp.id)}" title="Already paid and logged elsewhere, or not due this month" class="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-200/70 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 transition">Already paid</button>
             ` : (skipped ? `<button type="button" data-fx-unskip="${escapeHtml(fp.id)}" class="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-200/70 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 transition">Undo</button>` : '')}
@@ -6199,6 +6224,7 @@
         const next = {
           id: id || ('fx_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6)),
           name, amount, day, kind, variable,
+          startYM: document.getElementById('fx-start').value || '',
           bankId: document.getElementById('fx-bank').value,
           category: kind === 'salary' ? 'Salaries & Staff' : (document.getElementById('fx-category').value || 'Rent & Bills'),
           app: document.getElementById('fx-app').value || 'NetBanking',
@@ -6515,7 +6541,7 @@
       box.classList.remove('hidden');
       box.innerHTML = `
         <div class="min-w-0">
-          <p class="text-xs font-semibold text-cyan-950 dark:text-cyan-200">Add your monthly salaries so you never forget (7th of every month)</p>
+          <p class="text-xs font-semibold text-cyan-950 dark:text-cyan-200">Add your monthly salaries so you never forget (7th of every month, starting next month)</p>
           <p class="text-[11px] text-cyan-800 dark:text-cyan-300 mt-0.5">${missing.map(q => `${escapeHtml(q.name)} ${q.variable ? '(amount varies)' : formatCurrency(q.amount)}`).join(' • ')}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
@@ -6533,6 +6559,7 @@
       bankSel.innerHTML = '';
       appData.bankAccounts.forEach(b => { const o = document.createElement('option'); o.value = b.id; o.textContent = b.name; bankSel.appendChild(o); });
       bankSel.value = getPrimaryBankId();
+      document.getElementById('fx-quick-start').value = nextMonthYM();
       modal.classList.remove('hidden');
     }
     function closeFxQuickModal() {
@@ -6557,13 +6584,14 @@
         missing.forEach(q => appData.fixedPayments.push({
           id: 'fx_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
           name: q.name, amount: q.amount, day: 7, kind: 'salary', variable: q.variable,
+          startYM: document.getElementById('fx-quick-start').value || nextMonthYM(),
           bankId: document.getElementById('fx-quick-bank').value,
           category: 'Salaries & Staff', app: document.getElementById('fx-quick-app').value || 'GPay', skipped: []
         }));
         saveData(appData);
         closeFxQuickModal();
         renderAll();
-        showToast(`${missing.length} monthly salaries added for the 7th`, 'default', true);
+        showToast(`${missing.length} monthly salaries added. Reminders start ${monthLabel(document.getElementById('fx-quick-start').value || nextMonthYM(), true)}.`, 'default', true);
       });
     })();
 
@@ -6579,8 +6607,8 @@
         const paid = appData.transactions.some(tx => tx.fixedId === fp.id && tx.date && String(tx.date).startsWith(ym));
         const skipped = !paid && (fp.skipped || []).includes(ym);
         const d = makeClampedDate(today.getFullYear(), today.getMonth(), Math.min(31, Math.max(1, Number(fp.day) || 1)));
-        return { fp, paid, skipped, days: Math.round((d - today) / 86400000) };
-      }).filter(x => !x.paid && !x.skipped && x.days <= 2);
+        return { fp, paid, skipped, active: fixedActiveFor(fp, ym), days: Math.round((d - today) / 86400000) };
+      }).filter(x => x.active && !x.paid && !x.skipped && x.days <= 2);
       if (!due.length) { el.classList.add('hidden'); el.innerHTML = ''; return; }
       const late = due.filter(x => x.days < 0).length;
       const total = due.reduce((a, x) => a + fixedAmountFor(x.fp, ym), 0);
